@@ -1,6 +1,11 @@
 TITLE Elementary Arithmetic     (elementary-arithmetic.asm)
 
 ; Author: Fauzi Kliman
+; OSU Email: klimanf@oregonstate.edu
+; Class number and section: CS271-001
+; Assignment Number: 1
+; Assignment Due Date: 10/01/17 11:59pm
+
 ; Course / Project ID : Elementary Arithmetic                 Date: 9/24/17
 ; Description: This program will introduce the programmer, get two numbers
 ;	from the user, and calculate the sum, difference, product, quotient 
@@ -64,6 +69,7 @@ main PROC
 
 ; Prompt user for two numbers
 numberPrompt:
+	call	CrLf
 	mov		edx, OFFSET numberPrompt1
 	call	WriteString
 	call	ReadInt
@@ -77,10 +83,11 @@ numberPrompt:
 	mov		eax, num1
 	cmp		eax, num2
 	jge		num2Less
+	call	CrLf
 	mov		edx, OFFSET num1LessDisplay
 	call	WriteString
 	call	CrLf
-	jmp		goodbye
+	jmp		numberPrompt
 
 ; Calculate the sum, differece, product, quotient, and remainder
 num2Less:
@@ -144,12 +151,14 @@ num2Less:
 	je		afterDivisor
 	inc		eax
 afterDivisor:
-	cmp		fractionalRemainder, eax
+	cmp		fractionalRemainder, eax ; eax is the (divisor / 2) from previous division
 	jl		afterRounding
 	inc		fractional
 afterRounding:
 
 ; Display the results
+	call	CrLf
+
 	; Sum
 	mov		eax, num1
 	call	WriteDec
@@ -231,6 +240,8 @@ beginPadding:
 	div		ebx
 	cmp		eax, fractional
 	jle		endPadding
+	cmp		eax, 1
+	je		endPadding
 	mov		edx, OFFSET quotientPadding
 	call	WriteString
 	jmp		beginPadding
@@ -238,8 +249,9 @@ endPadding:
 	mov		eax, fractional
 	call	WriteDec
 	call	CrLf
-	
+
 ; Ask user if they want to quit
+	call	CrLf
 	mov		edx, OFFSET	quitPrompt
 	call	WriteString
 	call	ReadInt
@@ -248,7 +260,7 @@ endPadding:
 
 
 ; Say goodbye
-goodbye:
+	call	CrLf
 	mov		edx, OFFSET outro
 	call	WriteString
 	call	CrLf
