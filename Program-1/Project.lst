@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    09/25/17 00:16:28
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    09/26/17 00:00:52
 5Elementary Arithmetic     (elementary-arithmetic.asm	     Page 1 - 1
 
 
@@ -100,121 +100,288 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    09/25/17 00:16:28
 	   69 6E 64 65 72
 	   20 00
 
+					; Data for extra credit related
+ 0000013B 2A 2A 45 43 3A		ec1Display			BYTE	"**EC: Program repeats until user chooses to quit.", 0
+	   20 50 72 6F 67
+	   72 61 6D 20 72
+	   65 70 65 61 74
+	   73 20 75 6E 74
+	   69 6C 20 75 73
+	   65 72 20 63 68
+	   6F 6F 73 65 73
+	   20 74 6F 20 71
+	   75 69 74 2E 00
+ 0000016D 2A 2A 45 43 3A		ec2Display			BYTE	"**EC: Program verifies second number less than first.", 0
+	   20 50 72 6F 67
+	   72 61 6D 20 76
+	   65 72 69 66 69
+	   65 73 20 73 65
+	   63 6F 6E 64 20
+	   6E 75 6D 62 65
+	   72 20 6C 65 73
+	   73 20 74 68 61
+	   6E 20 66 69 72
+	   73 74 2E 00
+ 000001A3 2A 2A 45 43 3A		ec3Display			BYTE	"**EC: Program calculates and displays the quotient as floating-point number rounded to nearest .001.", 0
+	   20 50 72 6F 67
+	   72 61 6D 20 63
+	   61 6C 63 75 6C
+	   61 74 65 73 20
+	   61 6E 64 20 64
+	   69 73 70 6C 61
+	   79 73 20 74 68
+	   65 20 71 75 6F
+	   74 69 65 6E 74
+	   20 61 73 20 66
+	   6C 6F 61 74 69
+	   6E 67 2D 70 6F
+	   69 6E 74 20 6E
+	   75 6D 62 65 72
+	   20 72 6F 75 6E
+	   64 65 64 20 74
+	   6F 20 6E 65 61
+	   72 65 73 74 20
+	   2E 30 30 31 2E
+	   00
+ 00000208 54 68 65 20 73		num1LessDisplay		BYTE	"The second number must be less than the first!", 0
+	   65 63 6F 6E 64
+	   20 6E 75 6D 62
+	   65 72 20 6D 75
+	   73 74 20 62 65
+	   20 6C 65 73 73
+	   20 74 68 61 6E
+	   20 74 68 65 20
+	   66 69 72 73 74
+	   21 00
+ 00000237 45 6E 74 65 72		quitPrompt			BYTE	"Enter 1 to quit: ", 0
+	   20 31 20 74 6F
+	   20 71 75 69 74
+	   3A 20 00
+ 00000249 30 00				quotientPadding		BYTE	"0", 0
+ 0000024B 2E 00				decimal				BYTE	".", 0
+ 0000024D 00000001			numToQuit			DWORD	1
+ 00000251 000003E8			divPrecision		DWORD	1000
+ 00000255 00000000			fractional			DWORD	?
+ 00000259 00000000			fractionalRemainder	DWORD	?
+
  00000000			.code
  00000000			main PROC
 
-				; Introduce programmer, program title, and instructions for user
+				; Introduce programmer, program title, extra credit options, and instructions for user
  00000000  BA 0000001C R		mov		edx, OFFSET intro
  00000005  E8 00000000 E		call	WriteString
  0000000A  E8 00000000 E		call	CrLf
  0000000F  BA 0000007C R		mov		edx, OFFSET programInfo
  00000014  E8 00000000 E		call	WriteString
  00000019  E8 00000000 E		call	CrLf
+ 0000001E  BA 0000013B R		mov		edx, OFFSET ec1Display
+ 00000023  E8 00000000 E		call	WriteString
+ 00000028  E8 00000000 E		call	CrLf
+ 0000002D  BA 0000016D R		mov		edx, OFFSET ec2Display
+ 00000032  E8 00000000 E		call	WriteString
+ 00000037  E8 00000000 E		call	CrLf
+ 0000003C  BA 000001A3 R		mov		edx, OFFSET ec3Display
+ 00000041  E8 00000000 E		call	WriteString
+ 00000046  E8 00000000 E		call	CrLf
 
 				; Prompt user for two numbers
- 0000001E  BA 000000E8 R		mov		edx, OFFSET numberPrompt1
- 00000023  E8 00000000 E		call	WriteString
- 00000028  E8 00000000 E		call	ReadInt
- 0000002D  A3 00000000 R		mov		num1, eax
- 00000032  BA 00000101 R		mov		edx, OFFSET numberPrompt2
- 00000037  E8 00000000 E		call	WriteString
- 0000003C  E8 00000000 E		call	ReadInt
- 00000041  A3 00000004 R		mov		num2, eax
+ 0000004B			numberPrompt:
+ 0000004B  BA 000000E8 R		mov		edx, OFFSET numberPrompt1
+ 00000050  E8 00000000 E		call	WriteString
+ 00000055  E8 00000000 E		call	ReadInt
+ 0000005A  A3 00000000 R		mov		num1, eax
+ 0000005F  BA 00000101 R		mov		edx, OFFSET numberPrompt2
+ 00000064  E8 00000000 E		call	WriteString
+ 00000069  E8 00000000 E		call	ReadInt
+ 0000006E  A3 00000004 R		mov		num2, eax
+
+				; Verify second number is less than the first one
+ 00000073  A1 00000000 R		mov		eax, num1
+ 00000078  3B 05 00000004 R		cmp		eax, num2
+ 0000007E  7D 14			jge		num2Less
+ 00000080  BA 00000208 R		mov		edx, OFFSET num1LessDisplay
+ 00000085  E8 00000000 E		call	WriteString
+ 0000008A  E8 00000000 E		call	CrLf
+ 0000008F  E9 000001FC			jmp		goodbye
 
 				; Calculate the sum, differece, product, quotient, and remainder
+ 00000094			num2Less:
 					; Addition
- 00000046  A1 00000000 R		mov		eax, num1
- 0000004B  03 05 00000004 R		add		eax, num2
- 00000051  A3 00000008 R		mov		sum, eax
+ 00000094  A1 00000000 R		mov		eax, num1
+ 00000099  03 05 00000004 R		add		eax, num2
+ 0000009F  A3 00000008 R		mov		sum, eax
 					
 					; Subtraction
- 00000056  A1 00000000 R		mov		eax, num1
- 0000005B  2B 05 00000004 R		sub		eax, num2
- 00000061  A3 0000000C R		mov		difference, eax
+ 000000A4  A1 00000000 R		mov		eax, num1
+ 000000A9  2B 05 00000004 R		sub		eax, num2
+ 000000AF  A3 0000000C R		mov		difference, eax
 
 					; Multiplication
- 00000066  A1 00000000 R		mov		eax, num1
- 0000006B  F7 25 00000004 R		mul		num2
- 00000071  A3 00000010 R		mov		product, eax
+ 000000B4  A1 00000000 R		mov		eax, num1
+ 000000B9  F7 25 00000004 R		mul		num2
+ 000000BF  A3 00000010 R		mov		product, eax
 
 					; Quotient/Remainder
- 00000076  A1 00000000 R		mov		eax, num1
- 0000007B  99				cdq
- 0000007C  F7 35 00000004 R		div		num2
- 00000082  A3 00000014 R		mov		quotient, eax
- 00000087  89 15 00000018 R		mov		remainder, edx
+ 000000C4  A1 00000000 R		mov		eax, num1
+ 000000C9  99				cdq
+ 000000CA  F7 35 00000004 R		div		num2
+ 000000D0  A3 00000014 R		mov		quotient, eax
+ 000000D5  89 15 00000018 R		mov		remainder, edx
+
+					; Quotient as floating-point number
+					;	To get a fractional number I mulitply the remainder by 1000 since we
+					;	want the precision to the thousandths place and divide that number
+					;	by the divisor, in this case num2. The quotient of that division
+					;	will then be the fractional part. To handle rounding, increment
+					;	the fractional by 1 if the remainder of the fractional 
+					;	is greater than or equal to half the divisor, if the divisor is
+					;	an odd number then we need to compare with half the divisor + 1
+					;
+					;	Example with precision to tenths place for cleaner numbers
+					;		num1=555, num2=100
+					;		quotient = 555 / 100 = 5
+					;		remainder = 9 % 8 = 55
+					;		fractional = (55 * 10) / 100 = 55
+					;		fractionalRemainder = (55 * 10) % 100 = 50
+					;		halfDivisor = 100 / 2 = 50
+					;		
+					;		divisor (100) odd?
+					;		No, so do NOT add one to halfDivisor
+					;
+					;		fractionalRemainder >= halfDivisor?
+					;		Yes so add 1 to fractional
+					;
+					;		fractional = 56
+ 000000DB  A1 00000018 R		mov		eax, remainder
+ 000000E0  F7 25 00000251 R		mul		divPrecision
+ 000000E6  99				cdq
+ 000000E7  F7 35 00000004 R		div		num2
+ 000000ED  A3 00000255 R		mov		fractional, eax
+ 000000F2  89 15 00000259 R		mov		fractionalRemainder, edx
+ 000000F8  A1 00000004 R		mov		eax, num2
+ 000000FD  BB 00000002			mov		ebx, 2
+ 00000102  99				cdq
+ 00000103  F7 F3			div		ebx
+ 00000105  83 FA 00			cmp		edx, 0
+ 00000108  74 01			je		afterDivisor
+ 0000010A  40				inc		eax
+ 0000010B			afterDivisor:
+ 0000010B  39 05 00000259 R		cmp		fractionalRemainder, eax
+ 00000111  7C 06			jl		afterRounding
+ 00000113  FF 05 00000255 R		inc		fractional
+ 00000119			afterRounding:
 
 				; Display the results
 					; Sum
- 0000008D  A1 00000000 R		mov		eax, num1
- 00000092  E8 00000000 E		call	WriteDec
- 00000097  BA 0000011B R		mov		edx, OFFSET sumDisplay
- 0000009C  E8 00000000 E		call	WriteString
- 000000A1  A1 00000004 R		mov		eax, num2
- 000000A6  E8 00000000 E		call	WriteDec
- 000000AB  BA 0000012B R		mov		edx, OFFSET equalsDisplay
- 000000B0  E8 00000000 E		call	WriteString
- 000000B5  A1 00000008 R		mov		eax, sum
- 000000BA  E8 00000000 E		call	WriteDec
- 000000BF  E8 00000000 E		call	CrLf
+ 00000119  A1 00000000 R		mov		eax, num1
+ 0000011E  E8 00000000 E		call	WriteDec
+ 00000123  BA 0000011B R		mov		edx, OFFSET sumDisplay
+ 00000128  E8 00000000 E		call	WriteString
+ 0000012D  A1 00000004 R		mov		eax, num2
+ 00000132  E8 00000000 E		call	WriteDec
+ 00000137  BA 0000012B R		mov		edx, OFFSET equalsDisplay
+ 0000013C  E8 00000000 E		call	WriteString
+ 00000141  A1 00000008 R		mov		eax, sum
+ 00000146  E8 00000000 E		call	WriteDec
+ 0000014B  E8 00000000 E		call	CrLf
 
 					; Difference
- 000000C4  A1 00000000 R		mov		eax, num1
- 000000C9  E8 00000000 E		call	WriteDec
- 000000CE  BA 0000011F R		mov		edx, OFFSET differenceDisplay
- 000000D3  E8 00000000 E		call	WriteString
- 000000D8  A1 00000004 R		mov		eax, num2
- 000000DD  E8 00000000 E		call	WriteDec
- 000000E2  BA 0000012B R		mov		edx, OFFSET equalsDisplay
- 000000E7  E8 00000000 E		call	WriteString
- 000000EC  A1 0000000C R		mov		eax, difference
- 000000F1  E8 00000000 E		call	WriteDec
- 000000F6  E8 00000000 E		call	CrLf
+ 00000150  A1 00000000 R		mov		eax, num1
+ 00000155  E8 00000000 E		call	WriteDec
+ 0000015A  BA 0000011F R		mov		edx, OFFSET differenceDisplay
+ 0000015F  E8 00000000 E		call	WriteString
+ 00000164  A1 00000004 R		mov		eax, num2
+ 00000169  E8 00000000 E		call	WriteDec
+ 0000016E  BA 0000012B R		mov		edx, OFFSET equalsDisplay
+ 00000173  E8 00000000 E		call	WriteString
+ 00000178  A1 0000000C R		mov		eax, difference
+ 0000017D  E8 00000000 E		call	WriteDec
+ 00000182  E8 00000000 E		call	CrLf
 
 					; Product
- 000000FB  A1 00000000 R		mov		eax, num1
- 00000100  E8 00000000 E		call	WriteDec
- 00000105  BA 00000123 R		mov		edx, OFFSET productDisplay
- 0000010A  E8 00000000 E		call	WriteString
- 0000010F  A1 00000004 R		mov		eax, num2
- 00000114  E8 00000000 E		call	WriteDec
- 00000119  BA 0000012B R		mov		edx, OFFSET equalsDisplay
- 0000011E  E8 00000000 E		call	WriteString
- 00000123  A1 00000010 R		mov		eax, product
- 00000128  E8 00000000 E		call	WriteDec
- 0000012D  E8 00000000 E		call	CrLf
+ 00000187  A1 00000000 R		mov		eax, num1
+ 0000018C  E8 00000000 E		call	WriteDec
+ 00000191  BA 00000123 R		mov		edx, OFFSET productDisplay
+ 00000196  E8 00000000 E		call	WriteString
+ 0000019B  A1 00000004 R		mov		eax, num2
+ 000001A0  E8 00000000 E		call	WriteDec
+ 000001A5  BA 0000012B R		mov		edx, OFFSET equalsDisplay
+ 000001AA  E8 00000000 E		call	WriteString
+ 000001AF  A1 00000010 R		mov		eax, product
+ 000001B4  E8 00000000 E		call	WriteDec
+ 000001B9  E8 00000000 E		call	CrLf
 
 					; Quotient
- 00000132  A1 00000000 R		mov		eax, num1
- 00000137  E8 00000000 E		call	WriteDec
- 0000013C  BA 00000127 R		mov		edx, OFFSET quotientDisplay
- 00000141  E8 00000000 E		call	WriteString
- 00000146  A1 00000004 R		mov		eax, num2
- 0000014B  E8 00000000 E		call	WriteDec
- 00000150  BA 0000012B R		mov		edx, OFFSET equalsDisplay
- 00000155  E8 00000000 E		call	WriteString
- 0000015A  A1 00000014 R		mov		eax, quotient
- 0000015F  E8 00000000 E		call	WriteDec
+ 000001BE  A1 00000000 R		mov		eax, num1
+ 000001C3  E8 00000000 E		call	WriteDec
+ 000001C8  BA 00000127 R		mov		edx, OFFSET quotientDisplay
+ 000001CD  E8 00000000 E		call	WriteString
+ 000001D2  A1 00000004 R		mov		eax, num2
+ 000001D7  E8 00000000 E		call	WriteDec
+ 000001DC  BA 0000012B R		mov		edx, OFFSET equalsDisplay
+ 000001E1  E8 00000000 E		call	WriteString
+ 000001E6  A1 00000014 R		mov		eax, quotient
+ 000001EB  E8 00000000 E		call	WriteDec
 
 					; Remainder
- 00000164  BA 0000012F R		mov		edx, OFFSET remainderDisplay
- 00000169  E8 00000000 E		call	WriteString
- 0000016E  A1 00000018 R		mov		eax, remainder
- 00000173  E8 00000000 E		call	WriteDec
- 00000178  E8 00000000 E		call	CrLf
+ 000001F0  BA 0000012F R		mov		edx, OFFSET remainderDisplay
+ 000001F5  E8 00000000 E		call	WriteString
+ 000001FA  A1 00000018 R		mov		eax, remainder
+ 000001FF  E8 00000000 E		call	WriteDec
+ 00000204  E8 00000000 E		call	CrLf
+
+					; Fractional
+					; Quotient
+ 00000209  A1 00000000 R		mov		eax, num1
+ 0000020E  E8 00000000 E		call	WriteDec
+ 00000213  BA 00000127 R		mov		edx, OFFSET quotientDisplay
+ 00000218  E8 00000000 E		call	WriteString
+ 0000021D  A1 00000004 R		mov		eax, num2
+ 00000222  E8 00000000 E		call	WriteDec
+ 00000227  BA 0000012B R		mov		edx, OFFSET equalsDisplay
+ 0000022C  E8 00000000 E		call	WriteString
+ 00000231  A1 00000014 R		mov		eax, quotient
+ 00000236  E8 00000000 E		call	WriteDec
+ 0000023B  BA 0000024B R		mov		edx, OFFSET decimal
+ 00000240  E8 00000000 E		call	WriteString
+
+					; Add padded 0s
+ 00000245  A1 00000251 R		mov		eax, divPrecision
+ 0000024A  BB 0000000A			mov		ebx, 10
+ 0000024F			beginPadding:
+ 0000024F  99				cdq
+ 00000250  F7 F3			div		ebx
+ 00000252  3B 05 00000255 R		cmp		eax, fractional
+ 00000258  7E 0C			jle		endPadding
+ 0000025A  BA 00000249 R		mov		edx, OFFSET quotientPadding
+ 0000025F  E8 00000000 E		call	WriteString
+ 00000264  EB E9			jmp		beginPadding
+ 00000266			endPadding:
+ 00000266  A1 00000255 R		mov		eax, fractional
+ 0000026B  E8 00000000 E		call	WriteDec
+ 00000270  E8 00000000 E		call	CrLf
+					
+				; Ask user if they want to quit
+ 00000275  BA 00000237 R		mov		edx, OFFSET	quitPrompt
+ 0000027A  E8 00000000 E		call	WriteString
+ 0000027F  E8 00000000 E		call	ReadInt
+ 00000284  3B 05 0000024D R		cmp		eax, numToQuit
+ 0000028A  0F 85 FFFFFDBB		jne		numberPrompt
+
 
 				; Say goodbye
- 0000017D  BA 0000006A R		mov		edx, OFFSET outro
- 00000182  E8 00000000 E		call	WriteString
- 00000187  E8 00000000 E		call	CrLf
+ 00000290			goodbye:
+ 00000290  BA 0000006A R		mov		edx, OFFSET outro
+ 00000295  E8 00000000 E		call	WriteString
+ 0000029A  E8 00000000 E		call	CrLf
 
 					exit	; exit to operating system
- 0000018C  6A 00	   *	    push   +000000000h
- 0000018E  E8 00000000 E   *	    call   ExitProcess
- 00000193			main ENDP
+ 0000029F  6A 00	   *	    push   +000000000h
+ 000002A1  E8 00000000 E   *	    call   ExitProcess
+ 000002A6			main ENDP
 
 				END main
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    09/25/17 00:16:28
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    09/26/17 00:00:52
 5Elementary Arithmetic     (elementary-arithmetic.asm	     Symbols 2 - 1
 
 
@@ -308,8 +475,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 0000013B Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000193 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 0000025D Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 000002A6 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -416,7 +583,14 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000193 Public STDCALL
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000002A6 Public STDCALL
+  numberPrompt . . . . . . . . .	L Near	 0000004B _TEXT	
+  num2Less . . . . . . . . . . .	L Near	 00000094 _TEXT	
+  afterDivisor . . . . . . . . .	L Near	 0000010B _TEXT	
+  afterRounding  . . . . . . . .	L Near	 00000119 _TEXT	
+  beginPadding . . . . . . . . .	L Near	 0000024F _TEXT	
+  endPadding . . . . . . . . . .	L Near	 00000266 _TEXT	
+  goodbye  . . . . . . . . . . .	L Near	 00000290 _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -639,10 +813,17 @@ black  . . . . . . . . . . . . .	Number	 00000000h
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
+decimal  . . . . . . . . . . . .	Byte	 0000024B _DATA	
 differenceDisplay  . . . . . . .	Byte	 0000011F _DATA	
 difference . . . . . . . . . . .	DWord	 0000000C _DATA	
+divPrecision . . . . . . . . . .	DWord	 00000251 _DATA	
+ec1Display . . . . . . . . . . .	Byte	 0000013B _DATA	
+ec2Display . . . . . . . . . . .	Byte	 0000016D _DATA	
+ec3Display . . . . . . . . . . .	Byte	 000001A3 _DATA	
 equalsDisplay  . . . . . . . . .	Byte	 0000012B _DATA	
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
+fractionalRemainder  . . . . . .	DWord	 00000259 _DATA	
+fractional . . . . . . . . . . .	DWord	 00000255 _DATA	
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
 intro  . . . . . . . . . . . . .	Byte	 0000001C _DATA	
@@ -653,15 +834,19 @@ lightGreen . . . . . . . . . . .	Number	 0000000Ah
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
+num1LessDisplay  . . . . . . . .	Byte	 00000208 _DATA	
 num1 . . . . . . . . . . . . . .	DWord	 00000000 _DATA	
 num2 . . . . . . . . . . . . . .	DWord	 00000004 _DATA	
+numToQuit  . . . . . . . . . . .	DWord	 0000024D _DATA	
 numberPrompt1  . . . . . . . . .	Byte	 000000E8 _DATA	
 numberPrompt2  . . . . . . . . .	Byte	 00000101 _DATA	
 outro  . . . . . . . . . . . . .	Byte	 0000006A _DATA	
 productDisplay . . . . . . . . .	Byte	 00000123 _DATA	
 product  . . . . . . . . . . . .	DWord	 00000010 _DATA	
 programInfo  . . . . . . . . . .	Byte	 0000007C _DATA	
+quitPrompt . . . . . . . . . . .	Byte	 00000237 _DATA	
 quotientDisplay  . . . . . . . .	Byte	 00000127 _DATA	
+quotientPadding  . . . . . . . .	Byte	 00000249 _DATA	
 quotient . . . . . . . . . . . .	DWord	 00000014 _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
 remainderDisplay . . . . . . . .	Byte	 0000012F _DATA	
