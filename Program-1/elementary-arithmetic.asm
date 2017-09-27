@@ -45,7 +45,6 @@ INCLUDE Irvine32.inc
 	numToQuit			DWORD	1
 	divPrecision		DWORD	1000
 	fractional			DWORD	?
-	fractionalRemainder	DWORD	?
 
 .code
 main PROC
@@ -117,10 +116,10 @@ num2Less:
 	;	To get a fractional number I mulitply the remainder by 1000 since we
 	;	want the precision to the thousandths place and divide that number
 	;	by the divisor, in this case num2. The quotient of that division
-	;	will then be the fractional part. To handle rounding, increment
-	;	the fractional by 1 if the remainder of the fractional 
-	;	is greater than or equal to half the divisor, if the divisor is
-	;	an odd number then we need to compare with half the divisor + 1
+	;	will then be the fractional part. To handle rounding, multiply
+	;	the remainder from the previous division by 10 and divide that
+	;	by the divisor (num2), if the result is >= 5 then increment the
+	;	fractional by 1
 	;
 	;	Example with precision to tenths place for cleaner numbers
 	;		num1=555, num2=100
@@ -128,13 +127,8 @@ num2Less:
 	;		remainder = 9 % 8 = 55
 	;		fractional = (55 * 10) / 100 = 55
 	;		fractionalRemainder = (55 * 10) % 100 = 50
-	;		halfDivisor = 100 / 2 = 50
 	;		
-	;		divisor (100) odd?
-	;		No, so do NOT add one to halfDivisor
-	;
-	;		fractionalRemainder >= halfDivisor?
-	;		Yes so add 1 to fractional
+	;		(50 * 10) / 100 = 5, which is >= 5 thus add 1 to fractional
 	;
 	;		fractional = 56
 	mov		eax, remainder
@@ -142,16 +136,13 @@ num2Less:
 	cdq
 	div		num2
 	mov		fractional, eax
-	mov		fractionalRemainder, edx
-	mov		eax, num2
-	mov		ebx, 2
+	mov		eax, edx
+	mov		ebx, 10
+	mul		ebx
+	mov		ebx, num2
 	cdq
 	div		ebx
-	cmp		edx, 0
-	je		afterDivisor
-	inc		eax
-afterDivisor:
-	cmp		fractionalRemainder, eax ; eax is the (divisor / 2) from previous division
+	cmp		eax, 5 ; eax is (((remainder * divPrecision) % num2) * 10) / num2
 	jl		afterRounding
 	inc		fractional
 afterRounding:
