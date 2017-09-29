@@ -14,13 +14,13 @@ TITLE Elementary Arithmetic     (elementary-arithmetic.asm)
 INCLUDE Irvine32.inc
 
 .data
-	num1				DWORD	?
-	num2				DWORD	?
-	sum					DWORD	?
-	difference			DWORD	?
-	product				DWORD	?
-	quotient			DWORD	?
-	remainder			DWORD	?
+	num1				SDWORD	?
+	num2				SDWORD	?
+	sum					SDWORD	?
+	difference			SDWORD	?
+	product				SDWORD	?
+	quotient			SDWORD	?
+	remainder			SDWORD	?
 
 	intro				BYTE	"Hello, my name is Fauzi Kliman and this is the Elementary Arithmetic program!", 0
 	outro				BYTE	"Neato! Cya later!", 0
@@ -39,12 +39,13 @@ INCLUDE Irvine32.inc
 	ec2Display			BYTE	"**EC: Program verifies second number less than first.", 0
 	ec3Display			BYTE	"**EC: Program calculates and displays the quotient as floating-point number rounded to nearest .001.", 0
 	num1LessDisplay		BYTE	"The second number must be less than the first!", 0
+	divideByZeroDisplay	BYTE	"You can't divide by 0!", 0
 	quitPrompt			BYTE	"Enter 1 to quit: ", 0
 	quotientPadding		BYTE	"0", 0
 	decimal				BYTE	".", 0
 	numToQuit			DWORD	1
 	divPrecision		DWORD	1000
-	fractional			DWORD	?
+	fractional			SDWORD	?
 
 .code
 main PROC
@@ -78,10 +79,20 @@ numberPrompt:
 	call	ReadInt
 	mov		num2, eax
 
+; Make sure we don't try to divide by 0
+	cmp		eax, 0
+	jne		checkNum2Smaller
+	call	CrLf
+	mov		edx, OFFSET divideByZeroDisplay
+	call	WriteString
+	call	CrLf
+	jmp		numberPrompt
+
 ; Verify second number is less than the first one
+checkNum2Smaller:
 	mov		eax, num1
 	cmp		eax, num2
-	jge		num2Less
+	jge		num2Smaller
 	call	CrLf
 	mov		edx, OFFSET num1LessDisplay
 	call	WriteString
@@ -89,7 +100,7 @@ numberPrompt:
 	jmp		numberPrompt
 
 ; Calculate the sum, differece, product, quotient, and remainder
-num2Less:
+num2Smaller:
 	; Addition
 	mov		eax, num1
 	add		eax, num2
@@ -108,7 +119,7 @@ num2Less:
 	; Quotient/Remainder
 	mov		eax, num1
 	cdq
-	div		num2
+	idiv		num2
 	mov		quotient, eax
 	mov		remainder, edx
 
@@ -132,14 +143,26 @@ num2Less:
 	;
 	;		fractional = 56
 	mov		eax, remainder
+	cmp		eax, 0
+	jge		afterRemainderNeg
+	neg		eax
+afterRemainderNeg:
+	mov		ecx, num2
+	cmp		ecx, 0
+	jge		afterNum2Neg
+	neg		ecx
+afterNum2Neg:
 	mul		divPrecision
 	cdq
-	div		num2
+	div		ecx
 	mov		fractional, eax
+	; Multiply the remainder of the fractional by 10 and divide it by the
+	; divisor to check if its less than 5, otherwise round fractional by
+	; adding 1
 	mov		eax, edx
 	mov		ebx, 10
 	mul		ebx
-	mov		ebx, num2
+	mov		ebx, ecx
 	cdq
 	div		ebx
 	cmp		eax, 5 ; eax is (((remainder * divPrecision) % num2) * 10) / num2
@@ -152,74 +175,74 @@ afterRounding:
 
 	; Sum
 	mov		eax, num1
-	call	WriteDec
+	call	WriteInt
 	mov		edx, OFFSET sumDisplay
 	call	WriteString
 	mov		eax, num2
-	call	WriteDec
+	call	WriteInt
 	mov		edx, OFFSET equalsDisplay
 	call	WriteString
 	mov		eax, sum
-	call	WriteDec
+	call	WriteInt
 	call	CrLf
 
 	; Difference
 	mov		eax, num1
-	call	WriteDec
+	call	WriteInt
 	mov		edx, OFFSET differenceDisplay
 	call	WriteString
 	mov		eax, num2
-	call	WriteDec
+	call	WriteInt
 	mov		edx, OFFSET equalsDisplay
 	call	WriteString
 	mov		eax, difference
-	call	WriteDec
+	call	WriteInt
 	call	CrLf
 
 	; Product
 	mov		eax, num1
-	call	WriteDec
+	call	WriteInt
 	mov		edx, OFFSET productDisplay
 	call	WriteString
 	mov		eax, num2
-	call	WriteDec
+	call	WriteInt
 	mov		edx, OFFSET equalsDisplay
 	call	WriteString
 	mov		eax, product
-	call	WriteDec
+	call	WriteInt
 	call	CrLf
 
 	; Quotient
 	mov		eax, num1
-	call	WriteDec
+	call	WriteInt
 	mov		edx, OFFSET quotientDisplay
 	call	WriteString
 	mov		eax, num2
-	call	WriteDec
+	call	WriteInt
 	mov		edx, OFFSET equalsDisplay
 	call	WriteString
 	mov		eax, quotient
-	call	WriteDec
+	call	WriteInt
 
 	; Remainder
 	mov		edx, OFFSET remainderDisplay
 	call	WriteString
 	mov		eax, remainder
-	call	WriteDec
+	call	WriteInt
 	call	CrLf
 
 	; Fractional
 	; Quotient
 	mov		eax, num1
-	call	WriteDec
+	call	WriteInt
 	mov		edx, OFFSET quotientDisplay
 	call	WriteString
 	mov		eax, num2
-	call	WriteDec
+	call	WriteInt
 	mov		edx, OFFSET equalsDisplay
 	call	WriteString
 	mov		eax, quotient
-	call	WriteDec
+	call	WriteInt
 	mov		edx, OFFSET decimal
 	call	WriteString
 
