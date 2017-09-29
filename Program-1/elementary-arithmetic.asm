@@ -38,6 +38,7 @@ INCLUDE Irvine32.inc
 	ec1Display			BYTE	"**EC: Program repeats until user chooses to quit.", 0
 	ec2Display			BYTE	"**EC: Program verifies second number less than first.", 0
 	ec3Display			BYTE	"**EC: Program calculates and displays the quotient as floating-point number rounded to nearest .001.", 0
+	ec4Display			BYTE	"**EC: Program handles negative inputs/results.", 0
 	num1LessDisplay		BYTE	"The second number must be less than the first!", 0
 	divideByZeroDisplay	BYTE	"You can't divide by 0!", 0
 	quitPrompt			BYTE	"Enter 1 to quit: ", 0
@@ -64,6 +65,9 @@ main PROC
 	call	WriteString
 	call	CrLf
 	mov		edx, OFFSET ec3Display
+	call	WriteString
+	call	CrLf
+	mov		edx, OFFSET ec4Display
 	call	WriteString
 	call	CrLf
 
