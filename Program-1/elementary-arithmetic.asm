@@ -123,7 +123,7 @@ num2Smaller:
 	; Quotient/Remainder
 	mov		eax, num1
 	cdq
-	idiv		num2
+	idiv	num2
 	mov		quotient, eax
 	mov		remainder, edx
 
@@ -139,10 +139,16 @@ num2Smaller:
 	;	Example with precision to tenths place for cleaner numbers
 	;		num1=555, num2=100
 	;		quotient = 555 / 100 = 5
-	;		remainder = 9 % 8 = 55
-	;		fractional = (55 * 10) / 100 = 55
+	;		fractional = 555 % 100 = 55
+	;	
+	;	Currently the value is 5.55, but we want it rounded to the tenths place,
+	;	so grab the remainder 55, multiply it by 10 and then divide by the divisor
+	;	100 and the remainder of that division will be the fractional remainder
+	;
 	;		fractionalRemainder = (55 * 10) % 100 = 50
 	;		
+	;	Multiply the fractional remainder by 10 and divide by the divisor 100 again
+	;
 	;		(50 * 10) / 100 = 5, which is >= 5 thus add 1 to fractional
 	;
 	;		fractional = 56

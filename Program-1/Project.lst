@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/01/17 13:34:13
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/01/17 15:41:42
 5Elementary Arithmetic     (elementary-arithmetic.asm	     Page 1 - 1
 
 
@@ -258,7 +258,7 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/01/17 13:34:13
 					; Quotient/Remainder
  000000F5  A1 00000000 R		mov		eax, num1
  000000FA  99				cdq
- 000000FB  F7 3D 00000004 R		idiv		num2
+ 000000FB  F7 3D 00000004 R		idiv	num2
  00000101  A3 00000014 R		mov		quotient, eax
  00000106  89 15 00000018 R		mov		remainder, edx
 
@@ -274,10 +274,16 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/01/17 13:34:13
 					;	Example with precision to tenths place for cleaner numbers
 					;		num1=555, num2=100
 					;		quotient = 555 / 100 = 5
-					;		remainder = 9 % 8 = 55
-					;		fractional = (55 * 10) / 100 = 55
+					;		fractional = 555 % 100 = 55
+					;	
+	;	Currently the value is 5.55, but we want it rounded to the tenths place,
+					;	so grab the remainder 55, multiply it by 10 and then divide by the divisor
+					;	100 and the remainder of that division will be the fractional remainder
+					;
 					;		fractionalRemainder = (55 * 10) % 100 = 50
 					;		
+					;	Multiply the fractional remainder by 10 and divide by the divisor 100 again
+					;
 					;		(50 * 10) / 100 = 5, which is >= 5 thus add 1 to fractional
 					;
 					;		fractional = 56
@@ -435,7 +441,7 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/01/17 13:34:13
  000002EB			main ENDP
 
 				END main
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/01/17 13:34:13
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/01/17 15:41:42
 5Elementary Arithmetic     (elementary-arithmetic.asm	     Symbols 2 - 1
 
 
