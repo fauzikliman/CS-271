@@ -25,7 +25,7 @@ INCLUDE Irvine32.inc
 	intro				BYTE	"Hello, my name is Fauzi Kliman and this is the Elementary Arithmetic program!", 0
 	outro				BYTE	"Neato! Cya later!", 0
 	programInfo			BYTE	"This program will ask for two numbers to calculate their sum, difference, product, quotient, and remainder!", 0
-	numberPrompt1		Byte	"Enter the first number: ", 0
+	numberPrompt1		BYTE	"Enter the first number: ", 0
 	numberPrompt2		BYTE	"Enter the second number: ", 0
 	sumDisplay			BYTE	" + ", 0
 	differenceDisplay	BYTE	" - ", 0
@@ -96,7 +96,7 @@ numberPrompt:
 checkNum2Smaller:
 	mov		eax, num1
 	cmp		eax, num2
-	jge		num2Smaller
+	jg		num2Smaller
 	call	CrLf
 	mov		edx, OFFSET num1LessDisplay
 	call	WriteString
@@ -161,14 +161,13 @@ afterNum2Neg:
 	div		ecx
 	mov		fractional, eax
 	; Multiply the remainder of the fractional by 10 and divide it by the
-	; divisor to check if its less than 5, otherwise round fractional by
+	; divisor (num2) to check if its less than 5, otherwise round fractional by
 	; adding 1
 	mov		eax, edx
 	mov		ebx, 10
 	mul		ebx
-	mov		ebx, ecx
 	cdq
-	div		ebx
+	div		ecx
 	cmp		eax, 5 ; eax is (((remainder * divPrecision) % num2) * 10) / num2
 	jl		afterRounding
 	inc		fractional
@@ -251,6 +250,18 @@ afterRounding:
 	call	WriteString
 
 	; Add padded 0s
+	; The idea behind the padded 0s is to first divide the divPrecision by 10
+	; and if the fractional is less than that then to print a 0 and repeat
+	; until divPrecision / 10 is equal to 1 or the fractional is greater
+	; than or equal to divPrecision / 10
+	;
+	; For example, with a fractional value of 10 we want to print ".010"
+	;	divPrecision / 10 = 100
+	;	fractional < 100?
+	;	print "0"
+	;	(divPrecision / 10) / 10 = 10
+	;	fractional < 10?
+	;	print fractional
 	mov		eax, divPrecision
 	mov		ebx, 10
 beginPadding:
