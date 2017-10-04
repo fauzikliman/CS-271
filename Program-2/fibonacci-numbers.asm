@@ -15,7 +15,7 @@ TITLE Fibonacci Numbers     (fibonacci-numbers.asm)
 INCLUDE Irvine32.inc
 
 MAX_FIB_TERMS = 46
-COLUMN_WIDTH = 15
+COLUMN_WIDTH = 15 ; Amount of character space a term should take up in console
 
 .data
 	programNameMsg			BYTE	"Fibonacci Numbers", 0
@@ -29,14 +29,20 @@ COLUMN_WIDTH = 15
 	fibTermsLimitMsg		BYTE	"Give the number as an integer in the range [1 .. 46].", 0
 	fibTermsErrorMsg		BYTE	"Out of range.  Enter a number in [1 .. 46]", 0
 	fibTermsAmountPrompt	BYTE	"How many Fibonacci terms do you want? ", 0
-	horzTab					BYTE	9, 0
 	spaceChar				BYTE	" ", 0
+	; termA is initialized to 0 and termB is initialized to 1 because termB 
+	; will get the value of termA and termA will get the sum of termA + termB,
+	; thus handling the case where the amount of fibonacci numbers wanted 
+	; is 1 or 2 because fibonacci number 1 and 2 are both 1
 	termA					DWORD	0
 	termB					DWORD	1
-	termCount				DWORD	1
+	termCount				DWORD	0
 	termLength				DWORD	0
 	loopCounter				DWORD	0
 	newLinePrinted			DWORD	0
+
+	; Variables for extra credit
+	ecAlignedColumnsMsg		BYTE	"**EC: Prints the fibonacci numbers in aligned colums", 0
 
 .code
 main PROC
@@ -46,6 +52,9 @@ main PROC
 	call	WriteString
 	call	CrLf
 	mov		edx, OFFSET	programmedByMsg
+	call	WriteString
+	call	CrLf
+	mov		edx, OFFSET ecAlignedColumnsMsg
 	call	WriteString
 	call	CrLf
 
@@ -78,6 +87,7 @@ promptTermsLimit:
 	mov		edx, OFFSET fibTermsAmountPrompt
 	call	WriteString
 	call	ReadInt
+	; Valid user input for amount of fib terms is within bounds
 	cmp		eax, 0
 	jle		invalidTermsAmount
 	cmp		eax, MAX_FIB_TERMS
@@ -105,6 +115,12 @@ begFibLoop:
 	mov		termA, eax
 
 	; Find out how many digits are in the sum
+	; The amount of digits in a number is the amount of times you can
+	; recursively divide that number by 10 till a quotient of 0 is reached
+	; For example
+	; 123 / 10 = 12.3
+	; 12.3 / 10 = 1.23
+	; 1.23 / 10 = 0, took 3 times to get quotient of 0, thus has 3 digits
 	mov		loopCounter, ecx
 	mov		ebx, 10
 	mov		ecx, 0
@@ -118,8 +134,8 @@ endDigitLoop:
 	mov		termLength, ecx
 	mov		ecx, loopCounter
 
-	; Print out empty spaces until the digit and empty spaces are 
-	; COLUMN_WIDTH in length
+	; Print out empty spaces until the amount of digits in the term sum and 
+	; empty spaces are COLUMN_WIDTH in length
 	mov		eax, COLUMN_WIDTH
 	sub		eax, termLength
 begSpaceLoop:
@@ -136,10 +152,10 @@ endSpaceLoop:
 	inc		ebx
 	cmp		ebx, 5
 	mov		newLinePrinted, 0
-	jle		endFibLoop
+	jl		endFibLoop
 	mov		newLinePrinted, 1
 	call	CrLf
-	mov		ebx, 1
+	mov		ebx, 0
 endFibLoop:
 	mov		termCount, ebx
 	loop	fibTmpLoop
