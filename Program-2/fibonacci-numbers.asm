@@ -1,0 +1,174 @@
+TITLE Fibonacci Numbers     (fibonacci-numbers.asm)
+
+; Author: Fauzi Kliman
+; OSU Email: klimanf@oregonstate.edu
+; Class number and section: CS271-001
+; Assignment Number: 2
+; Assignment Due Date: 10/08/17 11:59pm
+
+; Course / Project ID : Fibonacci Numbers                 Date: 10/3/17
+; Description: This program will introduce the programmer and program, 
+;	get the users name greet the user, ask for a number between 
+;	1 and 46 and calculate the fibonacci number to the amount of terms 
+;	specified by the user
+
+INCLUDE Irvine32.inc
+
+MAX_FIB_TERMS = 46
+COLUMN_WIDTH = 15
+
+.data
+	programNameMsg			BYTE	"Fibonacci Numbers", 0
+	programmedByMsg			BYTE	"Programmed by Fauzi Kliman", 0
+	outroMsg				BYTE	"Results certified by Fauzi Kliman", 0
+	goodByeMsg				BYTE	"Goodbye, ", 0
+	usersNamePrompt			BYTE	"What's your name? ", 0
+	usersGreetingMsg		BYTE	"Hello, ", 0
+	usersName				BYTE	40 DUP(0)
+	fibTermsMsg				BYTE	"Enter the number of Fibonacci terms to be displayed", 0
+	fibTermsLimitMsg		BYTE	"Give the number as an integer in the range [1 .. 46].", 0
+	fibTermsErrorMsg		BYTE	"Out of range.  Enter a number in [1 .. 46]", 0
+	fibTermsAmountPrompt	BYTE	"How many Fibonacci terms do you want? ", 0
+	horzTab					BYTE	9, 0
+	spaceChar				BYTE	" ", 0
+	termA					DWORD	0
+	termB					DWORD	1
+	termCount				DWORD	1
+	termLength				DWORD	0
+	loopCounter				DWORD	0
+	newLinePrinted			DWORD	0
+
+.code
+main PROC
+
+; Introduction
+	mov		edx, OFFSET programNameMsg
+	call	WriteString
+	call	CrLf
+	mov		edx, OFFSET	programmedByMsg
+	call	WriteString
+	call	CrLf
+
+; Get user name
+	call	CrLf
+	mov		edx, OFFSET usersNamePrompt
+	call	WriteString
+	mov		edx, OFFSET	usersName
+	mov		ecx, 39
+	call	ReadString
+
+; Display users name
+	mov		edx, OFFSET usersGreetingMsg
+	call	WriteString
+	mov		edx, OFFSET usersName
+	call	WriteString
+	call	CrLf
+
+; User instructions
+	mov		edx, OFFSET fibTermsMsg
+	call	WriteString
+	call	CrLf
+	mov		edx, OFFSET	fibTermsLimitMsg
+	call	WriteString
+	call	CrLf
+	call	CrLf
+
+; Get user data
+promptTermsLimit:
+	mov		edx, OFFSET fibTermsAmountPrompt
+	call	WriteString
+	call	ReadInt
+	cmp		eax, 0
+	jle		invalidTermsAmount
+	cmp		eax, MAX_FIB_TERMS
+	jg		invalidTermsAmount
+	jmp		validTermsAmount
+invalidTermsAmount:
+	mov		edx, OFFSET fibTermsErrorMsg
+	call	WriteString
+	call	CrLf
+	jmp		promptTermsLimit
+
+; Display fibonacci numbers
+validTermsAmount:
+	call	CrLf
+	; Set the loop counter the amount terms the user wants
+	mov		ecx, eax
+begFibLoop:
+	mov		eax, termA
+	add		eax, termB
+	call	WriteDec
+
+	; Set termB to termA, set termA to the term sum
+	mov		ebx, termA
+	mov		termB, ebx
+	mov		termA, eax
+
+	; Find out how many digits are in the sum
+	mov		loopCounter, ecx
+	mov		ebx, 10
+	mov		ecx, 0
+begDigitLoop:
+	cdq		
+	div		ebx
+	inc		ecx
+	cmp		eax, 0
+	jne		begDigitLoop
+endDigitLoop:
+	mov		termLength, ecx
+	mov		ecx, loopCounter
+
+	; Print out empty spaces until the digit and empty spaces are 
+	; COLUMN_WIDTH in length
+	mov		eax, COLUMN_WIDTH
+	sub		eax, termLength
+begSpaceLoop:
+	cmp		eax, 0
+	je		endSpaceLoop
+	dec		eax
+	mov		edx, OFFSET spaceChar
+	call	WriteString
+	jmp		begSpaceLoop
+endSpaceLoop:
+
+	; Print a new line after 5 terms have been printed
+	mov		ebx, termCount
+	inc		ebx
+	cmp		ebx, 5
+	mov		newLinePrinted, 0
+	jle		endFibLoop
+	mov		newLinePrinted, 1
+	call	CrLf
+	mov		ebx, 1
+endFibLoop:
+	mov		termCount, ebx
+	loop	fibTmpLoop
+
+	; Print newline if fewer than 5 terms were printed last
+	mov		eax, newLinePrinted
+	cmp		eax, 1
+	je		goodBye
+	call	CrLf
+
+; Farewell
+goodBye:
+	call	CrLf
+	mov		edx, OFFSET outroMsg
+	call	WriteString
+	call	CrLf
+	mov		edx, OFFSET goodByeMsg
+	call	WriteString
+	mov		edx, OFFSET usersName
+	call	WriteString
+	call	CrLf
+
+	exit	; exit to operating system
+
+; Temporary loop jmp since loop can only jump 127 bytes ahead
+; or 128 bytes behind
+fibTmpLoop:
+	jmp		begFibLoop
+
+main ENDP
+
+END main
