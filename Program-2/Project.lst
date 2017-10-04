@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/03/17 23:58:29
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/04/17 16:01:58
 -Fibonacci Numbers     (fibonacci-numbers.asm		     Page 1 - 1
 
 
@@ -35,8 +35,10 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/03/17 23:58:29
 			      C .LIST
 			      C 
 
- = 0000002E			MAX_FIB_TERMS = 46
- = 0000000F			COLUMN_WIDTH = 15 ; Amount of character space a term should take up in console
+ = 00000001			MIN_FIB_TERMS	= 1
+ = 0000002E			MAX_FIB_TERMS	= 46
+ = 00000005			TERMS_PER_LINE	= 5
+ = 0000000F			COLUMN_WIDTH	= 15 ; Amount of characters a term should take up in console
 
  00000000			.data
  00000000 46 69 62 6F 6E		programNameMsg			BYTE	"Fibonacci Numbers", 0
@@ -116,10 +118,9 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/03/17 23:58:29
  00000162 00000000			termCount				DWORD	0
  00000166 00000000			termLength				DWORD	0
  0000016A 00000000			loopCounter				DWORD	0
- 0000016E 00000000			newLinePrinted			DWORD	0
 
 					; Variables for extra credit
- 00000172 2A 2A 45 43 3A		ecAlignedColumnsMsg		BYTE	"**EC: Prints the fibonacci numbers in aligned colums", 0
+ 0000016E 2A 2A 45 43 3A		ecAlignedColumnsMsg		BYTE	"**EC: Prints the fibonacci numbers in aligned colums", 0
 	   20 50 72 69 6E
 	   74 73 20 74 68
 	   65 20 66 69 62
@@ -141,7 +142,7 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/03/17 23:58:29
  0000000F  BA 00000012 R		mov		edx, OFFSET	programmedByMsg
  00000014  E8 00000000 E		call	WriteString
  00000019  E8 00000000 E		call	CrLf
- 0000001E  BA 00000172 R		mov		edx, OFFSET ecAlignedColumnsMsg
+ 0000001E  BA 0000016E R		mov		edx, OFFSET ecAlignedColumnsMsg
  00000023  E8 00000000 E		call	WriteString
  00000028  E8 00000000 E		call	CrLf
 
@@ -175,8 +176,8 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/03/17 23:58:29
  0000008C  E8 00000000 E		call	WriteString
  00000091  E8 00000000 E		call	ReadInt
 					; Valid user input for amount of fib terms is within bounds
- 00000096  83 F8 00			cmp		eax, 0
- 00000099  7E 07			jle		invalidTermsAmount
+ 00000096  83 F8 01			cmp		eax, MIN_FIB_TERMS
+ 00000099  7C 07			jl		invalidTermsAmount
  0000009B  83 F8 2E			cmp		eax, MAX_FIB_TERMS
  0000009E  7F 02			jg		invalidTermsAmount
  000000A0  EB 11			jmp		validTermsAmount
@@ -234,52 +235,50 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/03/17 23:58:29
  0000011B  EB EE			jmp		begSpaceLoop
  0000011D			endSpaceLoop:
 
-					; Print a new line after 5 terms have been printed
+					; Print a new line after TERMS_PER_LINE terms have been printed
  0000011D  8B 1D 00000162 R		mov		ebx, termCount
  00000123  43				inc		ebx
- 00000124  83 FB 05			cmp		ebx, 5
- 00000127  C7 05 0000016E R		mov		newLinePrinted, 0
-	   00000000
- 00000131  7C 14			jl		endFibLoop
- 00000133  C7 05 0000016E R		mov		newLinePrinted, 1
-	   00000001
- 0000013D  E8 00000000 E		call	CrLf
- 00000142  BB 00000000			mov		ebx, 0
- 00000147			endFibLoop:
- 00000147  89 1D 00000162 R		mov		termCount, ebx
- 0000014D  E2 43			loop	fibTmpLoop
+ 00000124  83 FB 05			cmp		ebx, TERMS_PER_LINE
+ 00000127  7C 0A			jl		endFibLoop
+ 00000129  E8 00000000 E		call	CrLf
+ 0000012E  BB 00000000			mov		ebx, 0
+ 00000133			endFibLoop:
+ 00000133  89 1D 00000162 R		mov		termCount, ebx
+ 00000139  E2 3E			loop	fibTmpLoop
 
-					; Print newline if fewer than 5 terms were printed last
- 0000014F  A1 0000016E R		mov		eax, newLinePrinted
- 00000154  83 F8 01			cmp		eax, 1
- 00000157  74 05			je		goodBye
- 00000159  E8 00000000 E		call	CrLf
+					; Print newline if a full line of terms was not printed when
+					; reaching the number of fib numbers the user wanted. This can be 
+					; determined by checking the value of ebx (value of termCount), 0
+					; means a full line of terms was printed with a newline
+ 0000013B  83 FB 00			cmp		ebx, 0
+ 0000013E  74 05			je		goodBye
+ 00000140  E8 00000000 E		call	CrLf
 
 				; Farewell
- 0000015E			goodBye:
- 0000015E  E8 00000000 E		call	CrLf
- 00000163  BA 0000002D R		mov		edx, OFFSET outroMsg
+ 00000145			goodBye:
+ 00000145  E8 00000000 E		call	CrLf
+ 0000014A  BA 0000002D R		mov		edx, OFFSET outroMsg
+ 0000014F  E8 00000000 E		call	WriteString
+ 00000154  E8 00000000 E		call	CrLf
+ 00000159  BA 0000004F R		mov		edx, OFFSET goodByeMsg
+ 0000015E  E8 00000000 E		call	WriteString
+ 00000163  BA 00000074 R		mov		edx, OFFSET usersName
  00000168  E8 00000000 E		call	WriteString
  0000016D  E8 00000000 E		call	CrLf
- 00000172  BA 0000004F R		mov		edx, OFFSET goodByeMsg
- 00000177  E8 00000000 E		call	WriteString
- 0000017C  BA 00000074 R		mov		edx, OFFSET usersName
- 00000181  E8 00000000 E		call	WriteString
- 00000186  E8 00000000 E		call	CrLf
 
 					exit	; exit to operating system
- 0000018B  6A 00	   *	    push   +000000000h
- 0000018D  E8 00000000 E   *	    call   ExitProcess
+ 00000172  6A 00	   *	    push   +000000000h
+ 00000174  E8 00000000 E   *	    call   ExitProcess
 
 				; Temporary loop jmp since loop can only jump 127 bytes ahead
 				; or 128 bytes behind
- 00000192			fibTmpLoop:
- 00000192  E9 FFFFFF23			jmp		begFibLoop
+ 00000179			fibTmpLoop:
+ 00000179  E9 FFFFFF3C			jmp		begFibLoop
 
- 00000197			main ENDP
+ 0000017E			main ENDP
 
 				END main
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/03/17 23:58:29
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/04/17 16:01:58
 -Fibonacci Numbers     (fibonacci-numbers.asm		     Symbols 2 - 1
 
 
@@ -373,8 +372,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 000001A7 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000197 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 000001A3 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 0000017E Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -481,7 +480,7 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000197 Public STDCALL
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 0000017E Public STDCALL
   promptTermsLimit . . . . . . .	L Near	 00000087 _TEXT	
   invalidTermsAmount . . . . . .	L Near	 000000A2 _TEXT	
   validTermsAmount . . . . . . .	L Near	 000000B3 _TEXT	
@@ -490,9 +489,9 @@ main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000197 Public 
   endDigitLoop . . . . . . . . .	L Near	 000000F4 _TEXT	
   begSpaceLoop . . . . . . . . .	L Near	 0000010B _TEXT	
   endSpaceLoop . . . . . . . . .	L Near	 0000011D _TEXT	
-  endFibLoop . . . . . . . . . .	L Near	 00000147 _TEXT	
-  goodBye  . . . . . . . . . . .	L Near	 0000015E _TEXT	
-  fibTmpLoop . . . . . . . . . .	L Near	 00000192 _TEXT	
+  endFibLoop . . . . . . . . . .	L Near	 00000133 _TEXT	
+  goodBye  . . . . . . . . . . .	L Near	 00000145 _TEXT	
+  fibTmpLoop . . . . . . . . . .	L Near	 00000179 _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -611,6 +610,7 @@ MB_USERICON  . . . . . . . . . .	Number	 00000080h
 MB_YESNOCANCEL . . . . . . . . .	Number	 00000003h   
 MB_YESNO . . . . . . . . . . . .	Number	 00000004h   
 MENU_EVENT . . . . . . . . . . .	Number	 00000008h   
+MIN_FIB_TERMS  . . . . . . . . .	Number	 00000001h   
 MOUSE_EVENT  . . . . . . . . . .	Number	 00000002h   
 MessageBox . . . . . . . . . . .	Text   	 MessageBoxA
 NULL . . . . . . . . . . . . . .	Number	 00000000h   
@@ -630,6 +630,7 @@ STD_INPUT_HANDLE . . . . . . . .	Number	 -0000000Ah
 STD_OUTPUT_HANDLE  . . . . . . .	Number	 -0000000Bh   
 SetConsoleTitle  . . . . . . . .	Text   	 SetConsoleTitleA
 TAB  . . . . . . . . . . . . . .	Number	 00000009h   
+TERMS_PER_LINE . . . . . . . . .	Number	 00000005h   
 TRUE . . . . . . . . . . . . . .	Number	 00000001h   
 TRUNCATE_EXISTING  . . . . . . .	Number	 00000005h   
 VK_11  . . . . . . . . . . . . .	Number	 000000BDh   
@@ -717,7 +718,7 @@ black  . . . . . . . . . . . . .	Number	 00000000h
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
-ecAlignedColumnsMsg  . . . . . .	Byte	 00000172 _DATA	
+ecAlignedColumnsMsg  . . . . . .	Byte	 0000016E _DATA	
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 fibTermsAmountPrompt . . . . . .	Byte	 00000131 _DATA	
 fibTermsErrorMsg . . . . . . . .	Byte	 00000106 _DATA	
@@ -734,7 +735,6 @@ lightMagenta . . . . . . . . . .	Number	 0000000Dh
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 loopCounter  . . . . . . . . . .	DWord	 0000016A _DATA	
 magenta  . . . . . . . . . . . .	Number	 00000005h   
-newLinePrinted . . . . . . . . .	DWord	 0000016E _DATA	
 outroMsg . . . . . . . . . . . .	Byte	 0000002D _DATA	
 programNameMsg . . . . . . . . .	Byte	 00000000 _DATA	
 programmedByMsg  . . . . . . . .	Byte	 00000012 _DATA	

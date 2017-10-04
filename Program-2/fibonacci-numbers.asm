@@ -14,8 +14,10 @@ TITLE Fibonacci Numbers     (fibonacci-numbers.asm)
 
 INCLUDE Irvine32.inc
 
-MAX_FIB_TERMS = 46
-COLUMN_WIDTH = 15 ; Amount of character space a term should take up in console
+MIN_FIB_TERMS	= 1
+MAX_FIB_TERMS	= 46
+TERMS_PER_LINE	= 5
+COLUMN_WIDTH	= 15 ; Amount of characters a term should take up in console
 
 .data
 	programNameMsg			BYTE	"Fibonacci Numbers", 0
@@ -39,7 +41,6 @@ COLUMN_WIDTH = 15 ; Amount of character space a term should take up in console
 	termCount				DWORD	0
 	termLength				DWORD	0
 	loopCounter				DWORD	0
-	newLinePrinted			DWORD	0
 
 	; Variables for extra credit
 	ecAlignedColumnsMsg		BYTE	"**EC: Prints the fibonacci numbers in aligned colums", 0
@@ -88,8 +89,8 @@ promptTermsLimit:
 	call	WriteString
 	call	ReadInt
 	; Valid user input for amount of fib terms is within bounds
-	cmp		eax, 0
-	jle		invalidTermsAmount
+	cmp		eax, MIN_FIB_TERMS
+	jl		invalidTermsAmount
 	cmp		eax, MAX_FIB_TERMS
 	jg		invalidTermsAmount
 	jmp		validTermsAmount
@@ -147,22 +148,22 @@ begSpaceLoop:
 	jmp		begSpaceLoop
 endSpaceLoop:
 
-	; Print a new line after 5 terms have been printed
+	; Print a new line after TERMS_PER_LINE terms have been printed
 	mov		ebx, termCount
 	inc		ebx
-	cmp		ebx, 5
-	mov		newLinePrinted, 0
+	cmp		ebx, TERMS_PER_LINE
 	jl		endFibLoop
-	mov		newLinePrinted, 1
 	call	CrLf
 	mov		ebx, 0
 endFibLoop:
 	mov		termCount, ebx
 	loop	fibTmpLoop
 
-	; Print newline if fewer than 5 terms were printed last
-	mov		eax, newLinePrinted
-	cmp		eax, 1
+	; Print newline if a full line of terms was not printed when
+	; reaching the number of fib numbers the user wanted. This can be 
+	; determined by checking the value of ebx (value of termCount), 0
+	; means a full line of terms was printed with a newline
+	cmp		ebx, 0
 	je		goodBye
 	call	CrLf
 
