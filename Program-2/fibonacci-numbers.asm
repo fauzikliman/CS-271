@@ -14,10 +14,11 @@ TITLE Fibonacci Numbers     (fibonacci-numbers.asm)
 
 INCLUDE Irvine32.inc
 
-MIN_FIB_TERMS	= 1
-MAX_FIB_TERMS	= 46
-TERMS_PER_LINE	= 5
-COLUMN_WIDTH	= 15 ; Amount of characters a term should take up in console
+MIN_FIB_TERMS			= 1
+MAX_FIB_TERMS			= 46
+TERMS_PER_LINE			= 5
+COLUMN_WIDTH			= 15 ; Amount of characters a term should take up in console
+USERS_NAME_MAX_LENGTH	= 40
 
 .data
 	programNameMsg			BYTE	"Fibonacci Numbers", 0
@@ -26,7 +27,7 @@ COLUMN_WIDTH	= 15 ; Amount of characters a term should take up in console
 	goodByeMsg				BYTE	"Goodbye, ", 0
 	usersNamePrompt			BYTE	"What's your name? ", 0
 	usersGreetingMsg		BYTE	"Hello, ", 0
-	usersName				BYTE	40 DUP(0)
+	usersName				BYTE	USERS_NAME_MAX_LENGTH DUP(0)
 	fibTermsMsg				BYTE	"Enter the number of Fibonacci terms to be displayed", 0
 	fibTermsLimitMsg		BYTE	"Give the number as an integer in the range [1 .. 46].", 0
 	fibTermsErrorMsg		BYTE	"Out of range.  Enter a number in [1 .. 46]", 0
@@ -64,7 +65,7 @@ main PROC
 	mov		edx, OFFSET usersNamePrompt
 	call	WriteString
 	mov		edx, OFFSET	usersName
-	mov		ecx, 39
+	mov		ecx, SIZEOF usersName
 	call	ReadString
 
 ; Display users name
@@ -141,7 +142,7 @@ endDigitLoop:
 	sub		eax, termLength
 begSpaceLoop:
 	cmp		eax, 0
-	je		endSpaceLoop
+	jle		endSpaceLoop
 	dec		eax
 	mov		edx, OFFSET spaceChar
 	call	WriteString

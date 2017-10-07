@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/04/17 16:01:58
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/07/17 11:36:33
 -Fibonacci Numbers     (fibonacci-numbers.asm		     Page 1 - 1
 
 
@@ -35,10 +35,11 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/04/17 16:01:58
 			      C .LIST
 			      C 
 
- = 00000001			MIN_FIB_TERMS	= 1
- = 0000002E			MAX_FIB_TERMS	= 46
- = 00000005			TERMS_PER_LINE	= 5
- = 0000000F			COLUMN_WIDTH	= 15 ; Amount of characters a term should take up in console
+ = 00000001			MIN_FIB_TERMS			= 1
+ = 0000002E			MAX_FIB_TERMS			= 46
+ = 00000005			TERMS_PER_LINE			= 5
+ = 0000000F			COLUMN_WIDTH			= 15 ; Amount of characters a term should take up in console
+ = 00000028			USERS_NAME_MAX_LENGTH	= 40
 
  00000000			.data
  00000000 46 69 62 6F 6E		programNameMsg			BYTE	"Fibonacci Numbers", 0
@@ -66,7 +67,7 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/04/17 16:01:58
 	   65 3F 20 00
  0000006C 48 65 6C 6C 6F		usersGreetingMsg		BYTE	"Hello, ", 0
 	   2C 20 00
- 00000074  00000028 [			usersName				BYTE	40 DUP(0)
+ 00000074  00000028 [			usersName				BYTE	USERS_NAME_MAX_LENGTH DUP(0)
 	    00
 	   ]
  0000009C 45 6E 74 65 72		fibTermsMsg				BYTE	"Enter the number of Fibonacci terms to be displayed", 0
@@ -151,7 +152,7 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/04/17 16:01:58
  00000032  BA 00000059 R		mov		edx, OFFSET usersNamePrompt
  00000037  E8 00000000 E		call	WriteString
  0000003C  BA 00000074 R		mov		edx, OFFSET	usersName
- 00000041  B9 00000027			mov		ecx, 39
+ 00000041  B9 00000028			mov		ecx, SIZEOF usersName
  00000046  E8 00000000 E		call	ReadString
 
 				; Display users name
@@ -228,7 +229,7 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/04/17 16:01:58
  00000105  2B 05 00000166 R		sub		eax, termLength
  0000010B			begSpaceLoop:
  0000010B  83 F8 00			cmp		eax, 0
- 0000010E  74 0D			je		endSpaceLoop
+ 0000010E  7E 0D			jle		endSpaceLoop
  00000110  48				dec		eax
  00000111  BA 00000158 R		mov		edx, OFFSET spaceChar
  00000116  E8 00000000 E		call	WriteString
@@ -278,7 +279,7 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/04/17 16:01:58
  0000017E			main ENDP
 
 				END main
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/04/17 16:01:58
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/07/17 11:36:33
 -Fibonacci Numbers     (fibonacci-numbers.asm		     Symbols 2 - 1
 
 
@@ -633,6 +634,7 @@ TAB  . . . . . . . . . . . . . .	Number	 00000009h
 TERMS_PER_LINE . . . . . . . . .	Number	 00000005h   
 TRUE . . . . . . . . . . . . . .	Number	 00000001h   
 TRUNCATE_EXISTING  . . . . . . .	Number	 00000005h   
+USERS_NAME_MAX_LENGTH  . . . . .	Number	 00000028h   
 VK_11  . . . . . . . . . . . . .	Number	 000000BDh   
 VK_12  . . . . . . . . . . . . .	Number	 000000BBh   
 VK_ADD . . . . . . . . . . . . .	Number	 0000006Bh   
