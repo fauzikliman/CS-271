@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/19/17 14:33:13
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/19/17 22:16:33
 1Integer Accumulator     (integer-accumulator.asm	     Page 1 - 1
 
 
@@ -36,7 +36,6 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/19/17 14:33:13
 			      C 
 				; (insert constant definitions here)
  =-00000064				MIN_INPUT_NUM = -100
- =-00000001				MAX_INPUT_NUM = -1
  = 00000028				USERNAME_MAX_LENGTH = 40
 
  00000000			.data
@@ -95,7 +94,14 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/19/17 14:33:13
 	   64 20 61 76 65
 	   72 61 67 65 20
 	   69 73 20 00
- 000000FC 54 68 61 6E 6B		outroMsg				BYTE	"Thank you for playing Integer Accumulator! It's been a pleasure to meet you, ", 0
+ 000000FC 4E 6F 20 76 61		noValidNumbersMsg		BYTE	"No valid numbers were entered!", 0
+	   6C 69 64 20 6E
+	   75 6D 62 65 72
+	   73 20 77 65 72
+	   65 20 65 6E 74
+	   65 72 65 64 21
+	   00
+ 0000011B 54 68 61 6E 6B		outroMsg				BYTE	"Thank you for playing Integer Accumulator! It's been a pleasure to meet you, ", 0
 	   20 79 6F 75 20
 	   66 6F 72 20 70
 	   6C 61 79 69 6E
@@ -111,23 +117,58 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/19/17 14:33:13
 	   6F 20 6D 65 65
 	   74 20 79 6F 75
 	   2C 20 00
- 0000014A 2E 00				periodMsg				BYTE	".", 0
+ 00000169 2E 00				periodMsg				BYTE	".", 0
+ 0000016B 4E 75 6D 62 65		inputNumberErrorMsg		BYTE	"Number must be in [-100, -1].", 0
+	   72 20 6D 75 73
+	   74 20 62 65 20
+	   69 6E 20 5B 2D
+	   31 30 30 2C 20
+	   2D 31 5D 2E 00
 					
- 0000014C 57 68 61 74 20		usernamePrompt			BYTE	"What is your name? ", 0
-	   69 73 20 79 6F
-	   75 72 20 6E 61
-	   6D 65 3F 20 00
- 00000160 45 6E 74 65 72		numberPrompt			BYTE	"Enter number: ", 0
-	   20 6E 75 6D 62
-	   65 72 3A 20 00
+ 00000189 2E 20 57 68 61		usernamePrompt			BYTE	". What is your name? ", 0
+	   74 20 69 73 20
+	   79 6F 75 72 20
+	   6E 61 6D 65 3F
+	   20 00
+ 0000019F 2E 20 45 6E 74		numberPrompt			BYTE	". Enter number: ", 0
+	   65 72 20 6E 75
+	   6D 62 65 72 3A
+	   20 00
 					
- 0000016F  00000028 [			username				BYTE	USERNAME_MAX_LENGTH DUP(0)
-	    00
-	   ]
- 00000197 00000000			validNumbersTotal		DWORD	0
- 0000019B 00000000			validNumbersSum			DWORD	0
- 0000019F 00000000			validNumbersAvg			DWORD	0	; This needs to be a float
+ 000001B0				username				BYTE	USERNAME_MAX_LENGTH DUP(0)
+ 000001D8 00000000			validNumbersCount		DWORD	0
+ 000001DC 00000000			validNumbersSum			SDWORD	0
+ 000001E0 00000000			validNumbersAvg			REAL4	?
 
+					; Extra credit related
+ 000001E4 45 43 3A 20 4E		ecInputCountingMsg		BYTE	"EC: Numbers the lines during user input.", 0
+	   75 6D 62 65 72
+	   73 20 74 68 65
+	   20 6C 69 6E 65
+	   73 20 64 75 72
+	   69 6E 67 20 75
+	   73 65 72 20 69
+	   6E 70 75 74 2E
+	   00
+ 0000020D 45 43 3A 20 44		ecRoundingMsg			BYTE	"EC: Displays the average as a floating-point number rounded to the nearest .001.", 0
+	   69 73 70 6C 61
+	   79 73 20 74 68
+	   65 20 61 76 65
+	   72 61 67 65 20
+	   61 73 20 61 20
+	   66 6C 6F 61 74
+	   69 6E 67 2D 70
+	   6F 69 6E 74 20
+	   6E 75 6D 62 65
+	   72 20 72 6F 75
+	   6E 64 65 64 20
+	   74 6F 20 74 68
+	   65 20 6E 65 61
+	   72 65 73 74 20
+	   2E 30 30 31 2E
+	   00
+ 0000025E 000003E8			avgRoundingPoint		DWORD	1000 ; Rounding the average to the thousandths place
+ 00000262 00000000			userInputCount			DWORD	0
  00000000			.code
 
 				; Displays program info
@@ -135,91 +176,182 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/19/17 14:33:13
  00000000  BA 00000000 R		mov		edx, OFFSET programNameMsg
  00000005  E8 00000000 E		call	WriteString
  0000000A  E8 00000000 E		call	CrLf
- 0000000F  C3				ret
- 00000010			DisplayProgramInfo ENDP
+ 0000000F  BA 000001E4 R		mov		edx, OFFSET ecInputCountingMsg
+ 00000014  E8 00000000 E		call	WriteString
+ 00000019  E8 00000000 E		call	CrLf
+ 0000001E  BA 0000020D R		mov		edx, OFFSET	ecRoundingMsg
+ 00000023  E8 00000000 E		call	WriteString
+ 00000028  E8 00000000 E		call	CrLf
+ 0000002D  C3				ret
+ 0000002E			DisplayProgramInfo ENDP
 
 				; Gets the username
- 00000010			GetUsername PROC
- 00000010  BA 0000014C R		mov		edx, OFFSET usernamePrompt
- 00000015  E8 00000000 E		call	WriteString
- 0000001A  B9 00000028			mov		ecx, USERNAME_MAX_LENGTH
- 0000001F  BA 0000016F R		mov		edx, OFFSET username
- 00000024  E8 00000000 E		call	ReadString
- 00000029  C3				ret
- 0000002A			GetUsername ENDP
+ 0000002E			GetUsername PROC
+ 0000002E  A1 00000262 R		mov		eax, userInputCount
+ 00000033  40				inc		eax
+ 00000034  A3 00000262 R		mov		userInputCount, eax
+ 00000039  E8 00000000 E		call	WriteDec
+ 0000003E  BA 00000189 R		mov		edx, OFFSET usernamePrompt
+ 00000043  E8 00000000 E		call	WriteString
+ 00000048  B9 00000028			mov		ecx, USERNAME_MAX_LENGTH
+ 0000004D  BA 000001B0 R		mov		edx, OFFSET username
+ 00000052  E8 00000000 E		call	ReadString
+ 00000057  C3				ret
+ 00000058			GetUsername ENDP
 
 				; Display username
- 0000002A			DisplayUsername PROC
- 0000002A  BA 00000033 R		mov		edx, OFFSET userGreetMsg
- 0000002F  E8 00000000 E		call	WriteString
- 00000034  BA 0000016F R		mov		edx, OFFSET username
- 00000039  E8 00000000 E		call	WriteString
- 0000003E  E8 00000000 E		call	CrLf
- 00000043  E8 00000000 E		call	CrLF
- 00000048  C3				ret
- 00000049			DisplayUsername ENDP
+ 00000058			DisplayUsername PROC
+ 00000058  BA 00000033 R		mov		edx, OFFSET userGreetMsg
+ 0000005D  E8 00000000 E		call	WriteString
+ 00000062  BA 000001B0 R		mov		edx, OFFSET username
+ 00000067  E8 00000000 E		call	WriteString
+ 0000006C  E8 00000000 E		call	CrLf
+ 00000071  E8 00000000 E		call	CrLF
+ 00000076  C3				ret
+ 00000077			DisplayUsername ENDP
 
 				; Display program instructions
- 00000049			DisplayProgramInstructions PROC
- 00000049  BA 0000003B R		mov		edx, OFFSET inputInstructionsMsg
- 0000004E  E8 00000000 E		call	WriteString
- 00000053  E8 00000000 E		call	CrLf
- 00000058  BA 0000005F R		mov		edx, OFFSET exitInstructionsMsg
- 0000005D  E8 00000000 E		call	WriteString
- 00000062  E8 00000000 E		call	CrLf
- 00000067  C3				ret
- 00000068			DisplayProgramInstructions ENDP
+ 00000077			DisplayProgramInstructions PROC
+ 00000077  BA 0000003B R		mov		edx, OFFSET inputInstructionsMsg
+ 0000007C  E8 00000000 E		call	WriteString
+ 00000081  E8 00000000 E		call	CrLf
+ 00000086  BA 0000005F R		mov		edx, OFFSET exitInstructionsMsg
+ 0000008B  E8 00000000 E		call	WriteString
+ 00000090  E8 00000000 E		call	CrLf
+ 00000095  C3				ret
+ 00000096			DisplayProgramInstructions ENDP
 
 				; Get user data
- 00000068			GetUserData PROC
- 00000068				getNumber:
- 00000068  BA 00000160 R			mov		edx, OFFSET numberPrompt
- 0000006D  E8 00000000 E			call	WriteString
- 00000072  E8 00000000 E			call	ReadInt
- 00000077  79 10				jns		endGetNumber
- 00000079  8B 1D 00000197 R			mov		ebx, validNumbersTotal
- 0000007F  03 D8				add		ebx, eax
- 00000081  89 1D 00000197 R			mov		validNumbersTotal, ebx
- 00000087  EB DF				jmp		getNumber
- 00000089				endGetNumber:
- 00000089  A1 00000197 R			mov		eax, validNumbersTotal
- 0000008E  E8 00000000 E			call	WriteInt
- 00000093  E8 00000000 E			call	CrLf
- 00000098  C3					ret
- 00000099			GetUserData ENDP
+ 00000096			GetUserData PROC
+ 00000096  8B 0D 00000262 R		mov		ecx, userInputCount	; Number of times asked for number input
+ 0000009C			getNumber:
+					; Inc and display the user input count
+ 0000009C  41				inc		ecx
+ 0000009D  8B C1			mov		eax, ecx
+ 0000009F  E8 00000000 E		call	WriteDec
+					; Prompt for valid number
+ 000000A4  BA 0000019F R		mov		edx, OFFSET numberPrompt
+ 000000A9  E8 00000000 E		call	WriteString
+ 000000AE  E8 00000000 E		call	ReadInt
+					; End loop if number is NOT negative
+ 000000B3  79 33			jns		endGetNumber
+					; Validate number is within bounds
+ 000000B5  83 F8 9C			cmp		eax, MIN_INPUT_NUM
+ 000000B8  7C 1D			jl		invalidNum
+					; Add valid number to sum
+ 000000BA  8B 1D 000001DC R		mov		ebx, validNumbersSum
+ 000000C0  03 D8			add		ebx, eax
+ 000000C2  89 1D 000001DC R		mov		validNumbersSum, ebx
+					; Inc valid numbers count
+ 000000C8  8B 1D 000001D8 R		mov		ebx, validNumbersCount
+ 000000CE  43				inc		ebx
+ 000000CF  89 1D 000001D8 R		mov		validNumbersCount, ebx
+ 000000D5  EB C5			jmp		getNumber
+ 000000D7			invalidNum:
+ 000000D7  BA 0000016B R		mov		edx, OFFSET inputNumberErrorMsg
+ 000000DC  E8 00000000 E		call	WriteString
+ 000000E1  E8 00000000 E		call	CrLf
+ 000000E6  EB B4			jmp		getNumber
+ 000000E8			endGetNumber:
+ 000000E8  89 0D 00000262 R		mov		userInputCount, ecx
+ 000000EE  C3				ret
+ 000000EF			GetUserData ENDP
 
- 00000099			main PROC
+				; Calculate avg
+ 000000EF			ProcessData PROC
+ 000000EF  9B DB E3			finit
+ 000000F2  DB 05 000001DC R		fild	validNumbersSum
+ 000000F8  DA 35 000001D8 R		fidiv	validNumbersCount
+ 000000FE  DA 0D 0000025E R		fimul	avgRoundingPoint
+ 00000104  D9 FC			frndint
+ 00000106  DA 35 0000025E R		fidiv	avgRoundingPoint
+ 0000010C  D9 15 000001E0 R		fst		validNumbersAvg
+ 00000112  C3				ret
+ 00000113			ProcessData ENDP
+
+				; Display the results
+ 00000113			DisplayResults PROC
+					; Number of valid numbers
+ 00000113  BA 000000A5 R		mov		edx, OFFSET validNumbersBegMsg
+ 00000118  E8 00000000 E		call	WriteString
+ 0000011D  A1 000001D8 R		mov		eax, validNumbersCount
+ 00000122  E8 00000000 E		call	WriteDec
+ 00000127  BA 000000B2 R		mov		edx, OFFSET validNUmbersEndMsg
+ 0000012C  E8 00000000 E		call	WriteString
+ 00000131  E8 00000000 E		call	CrLf
+					; Sum of valid numbers
+ 00000136  BA 000000C2 R		mov		edx, OFFSET validNumbersSumMsg
+ 0000013B  E8 00000000 E		call	WriteString
+ 00000140  A1 000001DC R		mov		eax, validNumbersSum
+ 00000145  E8 00000000 E		call	WriteInt
+ 0000014A  E8 00000000 E		call	CrLf
+					; Average of valid numbers
+ 0000014F  BA 000000E4 R		mov		edx, OFFSET validNumbersAvgMsg
+ 00000154  E8 00000000 E		call	WriteString
+ 00000159  D9 05 000001E0 R		fld		validNumbersAvg
+ 0000015F  E8 00000000 E		call	WriteFloat
+ 00000164  E8 00000000 E		call	CrLf
+ 00000169  C3				ret
+ 0000016A			DisplayResults ENDP
+
+				; Display outro msg
+ 0000016A			DisplayOutro PROC
+ 0000016A  BA 0000011B R		mov		edx, OFFSET outroMsg
+ 0000016F  E8 00000000 E		call	WriteString
+ 00000174  BA 000001B0 R		mov		edx, OFFSET username
+ 00000179  E8 00000000 E		call	WriteString
+ 0000017E  BA 00000169 R		mov		edx, OFFSET periodMsg
+ 00000183  E8 00000000 E		call	WriteString
+ 00000188  E8 00000000 E		call	CrLf
+ 0000018D  C3				ret
+ 0000018E			DisplayOutro ENDP
+
+ 0000018E			main PROC
 				; (insert executable instructions here)
 					; Display program info
- 00000099  E8 FFFFFF62			call	DisplayProgramInfo
+ 0000018E  E8 FFFFFE6D			call	DisplayProgramInfo
 
 					; Get username
- 0000009E  E8 FFFFFF6D			call	GetUsername
+ 00000193  E8 FFFFFE96			call	GetUsername
 
 					; Display username
- 000000A3  E8 FFFFFF82			call	DisplayUsername
+ 00000198  E8 FFFFFEBB			call	DisplayUsername
 
 					; Display program instructions
- 000000A8  E8 FFFFFF9C			call	DisplayProgramInstructions
+ 0000019D  E8 FFFFFED5			call	DisplayProgramInstructions
 
 					; Get user data
- 000000AD  E8 FFFFFFB6			call	GetUserData
+ 000001A2  E8 FFFFFEEF			call	GetUserData
 
+					; Display special msg and go to outro if no valid numbers were entered
+ 000001A7  A1 000001D8 R		mov		eax, validNumbersCount
+ 000001AC  83 F8 00			cmp		eax, 0
+ 000001AF  75 11			jne		validNumbersEntered
+ 000001B1  BA 000000FC R		mov		edx, OFFSET noValidNumbersMsg
+ 000001B6  E8 00000000 E		call	WriteString
+ 000001BB  E8 00000000 E		call	CrLf
+ 000001C0  EB 0A			jmp		DisplayOutroL
+
+ 000001C2			validNumbersEntered:
 					; Process user data
+ 000001C2  E8 FFFFFF28			call	ProcessData
 
 					; Display user data results
+ 000001C7  E8 FFFFFF47			call	DisplayResults
 
+ 000001CC			DisplayOutroL:
 					; Display outro
+ 000001CC  E8 FFFFFF99			call	DisplayOutro
 
 					exit	; exit to operating system
- 000000B2  6A 00	   *	    push   +000000000h
- 000000B4  E8 00000000 E   *	    call   ExitProcess
- 000000B9			main ENDP
+ 000001D1  6A 00	   *	    push   +000000000h
+ 000001D3  E8 00000000 E   *	    call   ExitProcess
+ 000001D8			main ENDP
 
 				; (insert additional procedures here)
 
 				END main
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/19/17 14:33:13
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/19/17 22:16:33
 1Integer Accumulator     (integer-accumulator.asm	     Symbols 2 - 1
 
 
@@ -313,8 +445,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 000001A3 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 000000B9 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000266 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 000001D8 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -328,9 +460,11 @@ CreateFileA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-DisplayProgramInfo . . . . . . .	P Near	 00000000 _TEXT	Length= 00000010 Public STDCALL
-DisplayProgramInstructions . . .	P Near	 00000049 _TEXT	Length= 0000001F Public STDCALL
-DisplayUsername  . . . . . . . .	P Near	 0000002A _TEXT	Length= 0000001F Public STDCALL
+DisplayOutro . . . . . . . . . .	P Near	 0000016A _TEXT	Length= 00000024 Public STDCALL
+DisplayProgramInfo . . . . . . .	P Near	 00000000 _TEXT	Length= 0000002E Public STDCALL
+DisplayProgramInstructions . . .	P Near	 00000077 _TEXT	Length= 0000001F Public STDCALL
+DisplayResults . . . . . . . . .	P Near	 00000113 _TEXT	Length= 00000057 Public STDCALL
+DisplayUsername  . . . . . . . .	P Near	 00000058 _TEXT	Length= 0000001F Public STDCALL
 DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ExitProcess  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -357,10 +491,11 @@ GetStdHandle . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 GetSystemTime  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetTextColor . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetTickCount . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-GetUserData  . . . . . . . . . .	P Near	 00000068 _TEXT	Length= 00000031 Public STDCALL
-  getNumber  . . . . . . . . . .	L Near	 00000068 _TEXT	
-  endGetNumber . . . . . . . . .	L Near	 00000089 _TEXT	
-GetUsername  . . . . . . . . . .	P Near	 00000010 _TEXT	Length= 0000001A Public STDCALL
+GetUserData  . . . . . . . . . .	P Near	 00000096 _TEXT	Length= 00000059 Public STDCALL
+  getNumber  . . . . . . . . . .	L Near	 0000009C _TEXT	
+  invalidNum . . . . . . . . . .	L Near	 000000D7 _TEXT	
+  endGetNumber . . . . . . . . .	L Near	 000000E8 _TEXT	
+GetUsername  . . . . . . . . . .	P Near	 0000002E _TEXT	Length= 0000002A Public STDCALL
 Gotoxy . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 HeapAlloc  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 HeapCreate . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -376,6 +511,7 @@ OpenInputFile  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 ParseDecimal32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ParseInteger32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 PeekConsoleInputA  . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ProcessData  . . . . . . . . . .	P Near	 000000EF _TEXT	Length= 00000024 Public STDCALL
 Random32 . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 RandomRange  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Randomize  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -428,7 +564,9 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000099 _TEXT	Length= 00000020 Public STDCALL
+main . . . . . . . . . . . . . .	P Near	 0000018E _TEXT	Length= 0000004A Public STDCALL
+  validNumbersEntered  . . . . .	L Near	 000001C2 _TEXT	
+  DisplayOutroL  . . . . . . . .	L Near	 000001CC _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -520,7 +658,6 @@ KEY_EVENT  . . . . . . . . . . .	Number	 00000001h
 KEY_MASKS  . . . . . . . . . . .	Number	 0000001Fh   
 LEFT_ALT_PRESSED . . . . . . . .	Number	 00000002h   
 LEFT_CTRL_PRESSED  . . . . . . .	Number	 00000008h   
-MAX_INPUT_NUM  . . . . . . . . .	Number	 -00000001h   
 MB_ABORTRETRYIGNORE  . . . . . .	Number	 00000002h   
 MB_APPLMODAL . . . . . . . . . .	Number	 00000000h   
 MB_CANCELTRYCONTINUE . . . . . .	Number	 00000006h   
@@ -650,15 +787,19 @@ VK_UP  . . . . . . . . . . . . .	Number	 00000026h
 WINDOW_BUFFER_SIZE_EVENT . . . .	Number	 00000004h   
 WriteConsoleOutputCharacter  . .	Text   	 WriteConsoleOutputCharacterA
 WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
+avgRoundingPoint . . . . . . . .	DWord	 0000025E _DATA	
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
+ecInputCountingMsg . . . . . . .	Byte	 000001E4 _DATA	
+ecRoundingMsg  . . . . . . . . .	Byte	 0000020D _DATA	
 exitInstructionsMsg  . . . . . .	Byte	 0000005F _DATA	
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
 inputInstructionsMsg . . . . . .	Byte	 0000003B _DATA	
+inputNumberErrorMsg  . . . . . .	Byte	 0000016B _DATA	
 lightBlue  . . . . . . . . . . .	Number	 00000009h   
 lightCyan  . . . . . . . . . . .	Number	 0000000Bh   
 lightGray  . . . . . . . . . . .	Number	 00000007h   
@@ -666,21 +807,23 @@ lightGreen . . . . . . . . . . .	Number	 0000000Ah
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
-numberPrompt . . . . . . . . . .	Byte	 00000160 _DATA	
-outroMsg . . . . . . . . . . . .	Byte	 000000FC _DATA	
-periodMsg  . . . . . . . . . . .	Byte	 0000014A _DATA	
+noValidNumbersMsg  . . . . . . .	Byte	 000000FC _DATA	
+numberPrompt . . . . . . . . . .	Byte	 0000019F _DATA	
+outroMsg . . . . . . . . . . . .	Byte	 0000011B _DATA	
+periodMsg  . . . . . . . . . . .	Byte	 00000169 _DATA	
 programNameMsg . . . . . . . . .	Byte	 00000000 _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
 userGreetMsg . . . . . . . . . .	Byte	 00000033 _DATA	
-usernamePrompt . . . . . . . . .	Byte	 0000014C _DATA	
-username . . . . . . . . . . . .	Byte	 0000016F _DATA	
+userInputCount . . . . . . . . .	DWord	 00000262 _DATA	
+usernamePrompt . . . . . . . . .	Byte	 00000189 _DATA	
+username . . . . . . . . . . . .	Byte	 000001B0 _DATA	
 validNumbersAvgMsg . . . . . . .	Byte	 000000E4 _DATA	
-validNumbersAvg  . . . . . . . .	DWord	 0000019F _DATA	
+validNumbersAvg  . . . . . . . .	DWord	 000001E0 _DATA	
 validNumbersBegMsg . . . . . . .	Byte	 000000A5 _DATA	
+validNumbersCount  . . . . . . .	DWord	 000001D8 _DATA	
 validNumbersEndMsg . . . . . . .	Byte	 000000B2 _DATA	
 validNumbersSumMsg . . . . . . .	Byte	 000000C2 _DATA	
-validNumbersSum  . . . . . . . .	DWord	 0000019B _DATA	
-validNumbersTotal  . . . . . . .	DWord	 00000197 _DATA	
+validNumbersSum  . . . . . . . .	DWord	 000001DC _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   

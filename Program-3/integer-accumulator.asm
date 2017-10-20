@@ -15,7 +15,6 @@ TITLE Integer Accumulator     (integer-accumulator.asm)
 INCLUDE Irvine32.inc
 ; (insert constant definitions here)
 	MIN_INPUT_NUM = -100
-	MAX_INPUT_NUM = -1
 	USERNAME_MAX_LENGTH = 40
 
 .data
@@ -28,17 +27,24 @@ INCLUDE Irvine32.inc
 	validNumbersEndMsg		BYTE	" valid numbers.", 0
 	validNumbersSumMsg		BYTE	"The sum of your valid numbers is ", 0
 	validNumbersAvgMsg		BYTE	"The rounded average is ", 0
+	noValidNumbersMsg		BYTE	"No valid numbers were entered!", 0
 	outroMsg				BYTE	"Thank you for playing Integer Accumulator! It's been a pleasure to meet you, ", 0
 	periodMsg				BYTE	".", 0
+	inputNumberErrorMsg		BYTE	"Number must be in [-100, -1].", 0
 	
-	usernamePrompt			BYTE	"What is your name? ", 0
-	numberPrompt			BYTE	"Enter number: ", 0
+	usernamePrompt			BYTE	". What is your name? ", 0
+	numberPrompt			BYTE	". Enter number: ", 0
 	
 	username				BYTE	USERNAME_MAX_LENGTH DUP(0)
-	validNumbersTotal		DWORD	0
-	validNumbersSum			DWORD	0
-	validNumbersAvg			DWORD	0	; This needs to be a float rounded to 0.001 place
+	validNumbersCount		DWORD	0
+	validNumbersSum			SDWORD	0
+	validNumbersAvg			REAL4	?
 
+	; Extra credit related
+	ecInputCountingMsg		BYTE	"EC: Numbers the lines during user input.", 0
+	ecRoundingMsg			BYTE	"EC: Displays the average as a floating-point number rounded to the nearest .001.", 0
+	avgRoundingPoint		DWORD	1000 ; Rounding the average to the thousandths place
+	userInputCount			DWORD	0
 .code
 
 ; Displays program info
@@ -46,11 +52,21 @@ DisplayProgramInfo PROC
 	mov		edx, OFFSET programNameMsg
 	call	WriteString
 	call	CrLf
+	mov		edx, OFFSET ecInputCountingMsg
+	call	WriteString
+	call	CrLf
+	mov		edx, OFFSET	ecRoundingMsg
+	call	WriteString
+	call	CrLf
 	ret
 DisplayProgramInfo ENDP
 
 ; Gets the username
 GetUsername PROC
+	mov		eax, userInputCount
+	inc		eax
+	mov		userInputCount, eax
+	call	WriteDec
 	mov		edx, OFFSET usernamePrompt
 	call	WriteString
 	mov		ecx, USERNAME_MAX_LENGTH
@@ -83,21 +99,88 @@ DisplayProgramInstructions ENDP
 
 ; Get user data
 GetUserData PROC
-	getNumber:
-		mov		edx, OFFSET numberPrompt
-		call	WriteString
-		call	ReadInt
-		jns		endGetNumber
-		mov		ebx, validNumbersTotal
-		add		ebx, eax
-		mov		validNumbersTotal, ebx
-		jmp		getNumber
-	endGetNumber:
-		mov		eax, validNumbersTotal
-		call	WriteInt
-		call	CrLf
-		ret
+	mov		ecx, userInputCount	; Number of times asked for number input
+getNumber:
+	; Inc and display the user input count
+	inc		ecx
+	mov		eax, ecx
+	call	WriteDec
+	; Prompt for valid number
+	mov		edx, OFFSET numberPrompt
+	call	WriteString
+	call	ReadInt
+	; End loop if number is NOT negative
+	jns		endGetNumber
+	; Validate number is within bounds
+	cmp		eax, MIN_INPUT_NUM
+	jl		invalidNum
+	; Add valid number to sum
+	mov		ebx, validNumbersSum
+	add		ebx, eax
+	mov		validNumbersSum, ebx
+	; Inc valid numbers count
+	mov		ebx, validNumbersCount
+	inc		ebx
+	mov		validNumbersCount, ebx
+	jmp		getNumber
+invalidNum:
+	mov		edx, OFFSET inputNumberErrorMsg
+	call	WriteString
+	call	CrLf
+	jmp		getNumber
+endGetNumber:
+	mov		userInputCount, ecx
+	ret
 GetUserData ENDP
+
+; Calculate avg
+ProcessData PROC
+	finit
+	fild	validNumbersSum
+	fidiv	validNumbersCount
+	fimul	avgRoundingPoint
+	frndint
+	fidiv	avgRoundingPoint
+	fst		validNumbersAvg
+	ret
+ProcessData ENDP
+
+; Display the results
+DisplayResults PROC
+	; Number of valid numbers
+	mov		edx, OFFSET validNumbersBegMsg
+	call	WriteString
+	mov		eax, validNumbersCount
+	call	WriteDec
+	mov		edx, OFFSET validNUmbersEndMsg
+	call	WriteString
+	call	CrLf
+	; Sum of valid numbers
+	mov		edx, OFFSET validNumbersSumMsg
+	call	WriteString
+	mov		eax, validNumbersSum
+	call	WriteInt
+	call	CrLf
+	; Average of valid numbers
+	mov		edx, OFFSET validNumbersAvgMsg
+	call	WriteString
+	fld		validNumbersAvg
+	call	WriteFloat
+	call	CrLf
+	ret
+DisplayResults ENDP
+
+; Display outro msg
+DisplayOutro PROC
+	mov		edx, OFFSET outroMsg
+	call	WriteString
+	mov		edx, OFFSET username
+	call	WriteString
+	mov		edx, OFFSET periodMsg
+	call	WriteString
+	call	CrLf
+	ret
+DisplayOutro ENDP
 
 main PROC
 ; (insert executable instructions here)
@@ -116,11 +199,25 @@ main PROC
 	; Get user data
 	call	GetUserData
 
+	; Display special msg and go to outro if no valid numbers were entered
+	mov		eax, validNumbersCount
+	cmp		eax, 0
+	jne		validNumbersEntered
+	mov		edx, OFFSET noValidNumbersMsg
+	call	WriteString
+	call	CrLf
+	jmp		DisplayOutroL
+
+validNumbersEntered:
 	; Process user data
+	call	ProcessData
 
 	; Display user data results
+	call	DisplayResults
 
+DisplayOutroL:
 	; Display outro
+	call	DisplayOutro
 
 	exit	; exit to operating system
 main ENDP
