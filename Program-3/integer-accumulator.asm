@@ -38,23 +38,28 @@ INCLUDE Irvine32.inc
 	username				BYTE	USERNAME_MAX_LENGTH DUP(0)
 	validNumbersCount		DWORD	0
 	validNumbersSum			SDWORD	0
-	validNumbersAvg			REAL4	?
 
 	; Extra credit related
 	ecInputCountingMsg		BYTE	"EC: Numbers the lines during user input.", 0
 	ecRoundingMsg			BYTE	"EC: Displays the average as a floating-point number rounded to the nearest .001.", 0
+	zeroMsg					BYTE	"0", 0
 	avgRoundingPoint		DWORD	1000 ; Rounding the average to the thousandths place
+	avgIntegerPart			SDWORD	0
+	avgFractionalPart		DWORD	0
 	userInputCount			DWORD	0
 .code
 
 ; Displays program info
 DisplayProgramInfo PROC
+	; Program name msg
 	mov		edx, OFFSET programNameMsg
 	call	WriteString
 	call	CrLf
+	; Counting user input lines extra credit msg
 	mov		edx, OFFSET ecInputCountingMsg
 	call	WriteString
 	call	CrLf
+	; Rounding the avg extra credit msg
 	mov		edx, OFFSET	ecRoundingMsg
 	call	WriteString
 	call	CrLf
@@ -63,10 +68,12 @@ DisplayProgramInfo ENDP
 
 ; Gets the username
 GetUsername PROC
+	; Display how many times we've asked for input and inc it
 	mov		eax, userInputCount
 	inc		eax
 	mov		userInputCount, eax
 	call	WriteDec
+	; Ask for users name
 	mov		edx, OFFSET usernamePrompt
 	call	WriteString
 	mov		ecx, USERNAME_MAX_LENGTH
@@ -77,6 +84,7 @@ GetUsername ENDP
 
 ; Display username
 DisplayUsername PROC
+	; Display the greet msg with the users name we got from before
 	mov		edx, OFFSET userGreetMsg
 	call	WriteString
 	mov		edx, OFFSET username
@@ -88,9 +96,11 @@ DisplayUsername ENDP
 
 ; Display program instructions
 DisplayProgramInstructions PROC
+	; Display instructions for using the program
 	mov		edx, OFFSET inputInstructionsMsg
 	call	WriteString
 	call	CrLf
+	; Display instructions on how to quit the program
 	mov		edx, OFFSET exitInstructionsMsg
 	call	WriteString
 	call	CrLf
@@ -111,6 +121,8 @@ getNumber:
 	call	ReadInt
 	; End loop if number is NOT negative
 	jns		endGetNumber
+	; Invalid number if overflow occurs
+	jo		invalidNum
 	; Validate number is within bounds
 	cmp		eax, MIN_INPUT_NUM
 	jl		invalidNum
@@ -122,26 +134,45 @@ getNumber:
 	mov		ebx, validNumbersCount
 	inc		ebx
 	mov		validNumbersCount, ebx
+	; Keep asking for user input
 	jmp		getNumber
 invalidNum:
+	; Display error msg if input is negative but out of bounds
 	mov		edx, OFFSET inputNumberErrorMsg
 	call	WriteString
 	call	CrLf
+	; Ask for user input again
 	jmp		getNumber
 endGetNumber:
+	; Save the amount times we asked for input to variable
 	mov		userInputCount, ecx
 	ret
 GetUserData ENDP
 
 ; Calculate avg
 ProcessData PROC
+	; Use the FPU to calculate the avg of the sum
 	finit
 	fild	validNumbersSum
 	fidiv	validNumbersCount
+	; Multiply the avg by the accurace of the rounding
+	; and use the FPU to round it 
 	fimul	avgRoundingPoint
 	frndint
-	fidiv	avgRoundingPoint
-	fst		validNumbersAvg
+	; Truncate the result to only keep the precision we wanted and 
+	; move it into a variable
+	fisttp	avgIntegerPart
+	; Split the avg into integer/fractional parts 
+	; by dividing the avg in the FPU by the wanted rounding
+	; and store the quotient into the integer part and remainder
+	; into the fractional part
+	mov		eax, avgIntegerPart
+	cdq
+	mov		ecx, avgRoundingPoint
+	idiv	ecx
+	mov		avgIntegerPart, eax
+	neg		edx
+	mov		avgFractionalPart, edx
 	ret
 ProcessData ENDP
 
@@ -164,18 +195,46 @@ DisplayResults PROC
 	; Average of valid numbers
 	mov		edx, OFFSET validNumbersAvgMsg
 	call	WriteString
-	fld		validNumbersAvg
-	call	WriteFloat
+	; Display the integer part of the avg
+	mov		eax, avgIntegerPart
+	call	WriteInt
+	; Display the decimal point
+	mov		edx, OFFSET periodMsg
+	call	WriteString
+	; Display the fractional part by first displaying
+	; 0's depending on the fractional part values, ex
+	; 1, 10, 100
+	; Divide the wanted precision for the rounding by 10,
+	; subtract 1 from it, if the fractional part is
+	; bigger than that then we can display the fractional
+	; part, otherwise display an 0 and repeat the process
+	mov		eax, avgRoundingPoint
+	mov		ebx, 10
+begDisplayZero:
+	cdq
+	div		ebx
+	dec		eax
+	cmp		avgFractionalPart, eax
+	jg		endDisplayZero
+	mov		edx, OFFSET zeroMsg
+	call	WriteString
+	jmp		begDisplayZero
+endDisplayZero:
+	mov		eax, avgFractionalPart
+	call	WriteDec
 	call	CrLf
 	ret
 DisplayResults ENDP
 
 ; Display outro msg
 DisplayOutro PROC
+	; Display outro msg
 	mov		edx, OFFSET outroMsg
 	call	WriteString
+	; Display the users name
 	mov		edx, OFFSET username
 	call	WriteString
+	; Display the period
 	mov		edx, OFFSET periodMsg
 	call	WriteString
 	call	CrLf
@@ -220,6 +279,7 @@ DisplayOutroL:
 	call	DisplayOutro
 
 	exit	; exit to operating system
+
 main ENDP
 
 ; (insert additional procedures here)
