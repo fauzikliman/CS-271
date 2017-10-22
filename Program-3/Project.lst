@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/22/17 15:48:43
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/22/17 16:32:24
 1Integer Accumulator     (integer-accumulator.asm	     Page 1 - 1
 
 
@@ -275,56 +275,69 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/22/17 15:48:43
 
 				; Calculate avg
  000000F1			ProcessData PROC
-					; Use the FPU to calculate the avg of the sum
- 000000F1  9B DB E3			finit
- 000000F4  DB 05 000001DC R		fild	validNumbersSum
- 000000FA  DA 35 000001D8 R		fidiv	validNumbersCount
-					; Multiply the avg by the accurace of the rounding
-					; and use the FPU to round it 
- 00000100  DA 0D 0000025C R		fimul	avgRoundingPoint
- 00000106  D9 FC			frndint
-					; Truncate the result to only keep the precision we wanted and 
-					; move it into a variable
- 00000108  DB 0D 00000260 R		fisttp	avgIntegerPart
-					; Split the avg into integer/fractional parts 
-					; by dividing the avg in the FPU by the wanted rounding
-					; and store the quotient into the integer part and remainder
-					; into the fractional part
- 0000010E  A1 00000260 R		mov		eax, avgIntegerPart
- 00000113  99				cdq
- 00000114  8B 0D 0000025C R		mov		ecx, avgRoundingPoint
- 0000011A  F7 F9			idiv	ecx
- 0000011C  A3 00000260 R		mov		avgIntegerPart, eax
- 00000121  F7 DA			neg		edx
- 00000123  89 15 00000264 R		mov		avgFractionalPart, edx
- 00000129  C3				ret
- 0000012A			ProcessData ENDP
+					; Get the avg integer/fractional part
+ 000000F1  A1 000001DC R		mov		eax, validNumbersSum
+ 000000F6  99				cdq
+ 000000F7  F7 3D 000001D8 R		idiv	validNumbersCount
+					; Move the quotient into the integer part variable
+ 000000FD  A3 00000260 R		mov		avgIntegerPart, eax
+					; Make the remainder a positive number to make calculating the 
+					; fractional part easier
+ 00000102  F7 DA			neg		edx
+					; Mulitply the remainder by the rounding precision and
+					; divide that by the number of valid numbers to find the 
+					; fractional part of the avg
+ 00000104  8B C2			mov		eax, edx
+ 00000106  F7 25 0000025C R		mul		avgRoundingPoint
+ 0000010C  99				cdq
+ 0000010D  F7 35 000001D8 R		div		validNumbersCount
+ 00000113  A3 00000264 R		mov		avgFractionalPart, eax
+					; Mulitply the remainder of the fractional part division
+					; by 10 and divide it by the number of valid numbers and
+					; compare it with 5 to see if we need to increment the 
+					; fractional part by 1 due to rounding
+ 00000118  8B C2			mov		eax, edx
+ 0000011A  BB 0000000A			mov		ebx, 10
+ 0000011F  F7 E3			mul		ebx
+ 00000121  99				cdq
+ 00000122  F7 35 000001D8 R		div		validNumbersCount
+ 00000128  83 F8 05			cmp		eax, 5
+					; If the result is less than 5 then we don't need to
+					; increment the rounding by 1
+ 0000012B  7C 0B			jl		endRound
+					; Otherwise, increment the rounding by 1
+ 0000012D  A1 00000264 R		mov		eax, avgFractionalPart
+ 00000132  40				inc		eax
+ 00000133  A3 00000264 R		mov		avgFractionalPart, eax
+ 00000138			endRound:
+ 00000138  C3				ret
+ 00000139			ProcessData ENDP
 
 				; Display the results
- 0000012A			DisplayResults PROC
+ 00000139			DisplayResults PROC
 					; Number of valid numbers
- 0000012A  BA 000000A5 R		mov		edx, OFFSET validNumbersBegMsg
- 0000012F  E8 00000000 E		call	WriteString
- 00000134  A1 000001D8 R		mov		eax, validNumbersCount
- 00000139  E8 00000000 E		call	WriteDec
- 0000013E  BA 000000B2 R		mov		edx, OFFSET validNUmbersEndMsg
- 00000143  E8 00000000 E		call	WriteString
- 00000148  E8 00000000 E		call	CrLf
-					; Sum of valid numbers
- 0000014D  BA 000000C2 R		mov		edx, OFFSET validNumbersSumMsg
+ 00000139  BA 000000A5 R		mov		edx, OFFSET validNumbersBegMsg
+ 0000013E  E8 00000000 E		call	WriteString
+ 00000143  A1 000001D8 R		mov		eax, validNumbersCount
+ 00000148  E8 00000000 E		call	WriteDec
+ 0000014D  BA 000000B2 R		mov		edx, OFFSET validNUmbersEndMsg
  00000152  E8 00000000 E		call	WriteString
- 00000157  A1 000001DC R		mov		eax, validNumbersSum
- 0000015C  E8 00000000 E		call	WriteInt
- 00000161  E8 00000000 E		call	CrLf
+ 00000157  E8 00000000 E		call	CrLf
+					; Sum of valid numbers
+ 0000015C  BA 000000C2 R		mov		edx, OFFSET validNumbersSumMsg
+ 00000161  E8 00000000 E		call	WriteString
+ 00000166  A1 000001DC R		mov		eax, validNumbersSum
+ 0000016B  E8 00000000 E		call	WriteInt
+ 00000170  E8 00000000 E		call	CrLf
 					; Average of valid numbers
- 00000166  BA 000000E4 R		mov		edx, OFFSET validNumbersAvgMsg
- 0000016B  E8 00000000 E		call	WriteString
+ 00000175  BA 000000E4 R		mov		edx, OFFSET validNumbersAvgMsg
+ 0000017A  E8 00000000 E		call	WriteString
 					; Display the integer part of the avg
- 00000170  A1 00000260 R		mov		eax, avgIntegerPart
- 00000175  E8 00000000 E		call	WriteInt
+ 0000017F  A1 00000260 R		mov		eax, avgIntegerPart
+ 00000184  E8 00000000 E		call	WriteInt
 					; Display the decimal point
- 0000017A  BA 00000169 R		mov		edx, OFFSET periodMsg
- 0000017F  E8 00000000 E		call	WriteString
+ 00000189  BA 00000169 R		mov		edx, OFFSET periodMsg
+ 0000018E  E8 00000000 E		call	WriteString
 					; Display the fractional part by first displaying
 					; 0's depending on the fractional part values, ex
 					; 1, 10, 100
@@ -332,86 +345,86 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/22/17 15:48:43
 					; subtract 1 from it, if the fractional part is
 					; bigger than that then we can display the fractional
 					; part, otherwise display an 0 and repeat the process
- 00000184  A1 0000025C R		mov		eax, avgRoundingPoint
- 00000189  BB 0000000A			mov		ebx, 10
- 0000018E			begDisplayZero:
- 0000018E  99				cdq
- 0000018F  F7 F3			div		ebx
- 00000191  48				dec		eax
- 00000192  39 05 00000264 R		cmp		avgFractionalPart, eax
- 00000198  7F 0C			jg		endDisplayZero
- 0000019A  BA 0000025A R		mov		edx, OFFSET zeroMsg
- 0000019F  E8 00000000 E		call	WriteString
- 000001A4  EB E8			jmp		begDisplayZero
- 000001A6			endDisplayZero:
- 000001A6  A1 00000264 R		mov		eax, avgFractionalPart
- 000001AB  E8 00000000 E		call	WriteDec
- 000001B0  E8 00000000 E		call	CrLf
- 000001B5  C3				ret
- 000001B6			DisplayResults ENDP
+ 00000193  A1 0000025C R		mov		eax, avgRoundingPoint
+ 00000198  BB 0000000A			mov		ebx, 10
+ 0000019D			begDisplayZero:
+ 0000019D  99				cdq
+ 0000019E  F7 F3			div		ebx
+ 000001A0  48				dec		eax
+ 000001A1  39 05 00000264 R		cmp		avgFractionalPart, eax
+ 000001A7  7F 0C			jg		endDisplayZero
+ 000001A9  BA 0000025A R		mov		edx, OFFSET zeroMsg
+ 000001AE  E8 00000000 E		call	WriteString
+ 000001B3  EB E8			jmp		begDisplayZero
+ 000001B5			endDisplayZero:
+ 000001B5  A1 00000264 R		mov		eax, avgFractionalPart
+ 000001BA  E8 00000000 E		call	WriteDec
+ 000001BF  E8 00000000 E		call	CrLf
+ 000001C4  C3				ret
+ 000001C5			DisplayResults ENDP
 
 				; Display outro msg
- 000001B6			DisplayOutro PROC
+ 000001C5			DisplayOutro PROC
 					; Display outro msg
- 000001B6  BA 0000011B R		mov		edx, OFFSET outroMsg
- 000001BB  E8 00000000 E		call	WriteString
+ 000001C5  BA 0000011B R		mov		edx, OFFSET outroMsg
+ 000001CA  E8 00000000 E		call	WriteString
 					; Display the users name
- 000001C0  BA 000001B0 R		mov		edx, OFFSET username
- 000001C5  E8 00000000 E		call	WriteString
+ 000001CF  BA 000001B0 R		mov		edx, OFFSET username
+ 000001D4  E8 00000000 E		call	WriteString
 					; Display the period
- 000001CA  BA 00000169 R		mov		edx, OFFSET periodMsg
- 000001CF  E8 00000000 E		call	WriteString
- 000001D4  E8 00000000 E		call	CrLf
- 000001D9  C3				ret
- 000001DA			DisplayOutro ENDP
+ 000001D9  BA 00000169 R		mov		edx, OFFSET periodMsg
+ 000001DE  E8 00000000 E		call	WriteString
+ 000001E3  E8 00000000 E		call	CrLf
+ 000001E8  C3				ret
+ 000001E9			DisplayOutro ENDP
 
- 000001DA			main PROC
+ 000001E9			main PROC
 				; (insert executable instructions here)
 					; Display program info
- 000001DA  E8 FFFFFE21			call	DisplayProgramInfo
+ 000001E9  E8 FFFFFE12			call	DisplayProgramInfo
 
 					; Get username
- 000001DF  E8 FFFFFE4A			call	GetUsername
+ 000001EE  E8 FFFFFE3B			call	GetUsername
 
 					; Display username
- 000001E4  E8 FFFFFE6F			call	DisplayUsername
+ 000001F3  E8 FFFFFE60			call	DisplayUsername
 
 					; Display program instructions
- 000001E9  E8 FFFFFE89			call	DisplayProgramInstructions
+ 000001F8  E8 FFFFFE7A			call	DisplayProgramInstructions
 
 					; Get user data
- 000001EE  E8 FFFFFEA3			call	GetUserData
+ 000001FD  E8 FFFFFE94			call	GetUserData
 
 					; Display special msg and go to outro if no valid numbers were entered
- 000001F3  A1 000001D8 R		mov		eax, validNumbersCount
- 000001F8  83 F8 00			cmp		eax, 0
- 000001FB  75 11			jne		validNumbersEntered
- 000001FD  BA 000000FC R		mov		edx, OFFSET noValidNumbersMsg
- 00000202  E8 00000000 E		call	WriteString
- 00000207  E8 00000000 E		call	CrLf
- 0000020C  EB 0A			jmp		DisplayOutroL
+ 00000202  A1 000001D8 R		mov		eax, validNumbersCount
+ 00000207  83 F8 00			cmp		eax, 0
+ 0000020A  75 11			jne		validNumbersEntered
+ 0000020C  BA 000000FC R		mov		edx, OFFSET noValidNumbersMsg
+ 00000211  E8 00000000 E		call	WriteString
+ 00000216  E8 00000000 E		call	CrLf
+ 0000021B  EB 0A			jmp		DisplayOutroL
 
- 0000020E			validNumbersEntered:
+ 0000021D			validNumbersEntered:
 					; Process user data
- 0000020E  E8 FFFFFEDE			call	ProcessData
+ 0000021D  E8 FFFFFECF			call	ProcessData
 
 					; Display user data results
- 00000213  E8 FFFFFF12			call	DisplayResults
+ 00000222  E8 FFFFFF12			call	DisplayResults
 
- 00000218			DisplayOutroL:
+ 00000227			DisplayOutroL:
 					; Display outro
- 00000218  E8 FFFFFF99			call	DisplayOutro
+ 00000227  E8 FFFFFF99			call	DisplayOutro
 
 					exit	; exit to operating system
- 0000021D  6A 00	   *	    push   +000000000h
- 0000021F  E8 00000000 E   *	    call   ExitProcess
+ 0000022C  6A 00	   *	    push   +000000000h
+ 0000022E  E8 00000000 E   *	    call   ExitProcess
 
- 00000224			main ENDP
+ 00000233			main ENDP
 
 				; (insert additional procedures here)
 
 				END main
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/22/17 15:48:43
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/22/17 16:32:24
 1Integer Accumulator     (integer-accumulator.asm	     Symbols 2 - 1
 
 
@@ -506,7 +519,7 @@ Segments and Groups:
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
 _DATA  . . . . . . . . . . . . .	32 Bit	 0000026C Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000224 Para	  Public  'CODE'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 00000233 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -520,12 +533,12 @@ CreateFileA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-DisplayOutro . . . . . . . . . .	P Near	 000001B6 _TEXT	Length= 00000024 Public STDCALL
+DisplayOutro . . . . . . . . . .	P Near	 000001C5 _TEXT	Length= 00000024 Public STDCALL
 DisplayProgramInfo . . . . . . .	P Near	 00000000 _TEXT	Length= 0000002E Public STDCALL
 DisplayProgramInstructions . . .	P Near	 00000077 _TEXT	Length= 0000001F Public STDCALL
-DisplayResults . . . . . . . . .	P Near	 0000012A _TEXT	Length= 0000008C Public STDCALL
-  begDisplayZero . . . . . . . .	L Near	 0000018E _TEXT	
-  endDisplayZero . . . . . . . .	L Near	 000001A6 _TEXT	
+DisplayResults . . . . . . . . .	P Near	 00000139 _TEXT	Length= 0000008C Public STDCALL
+  begDisplayZero . . . . . . . .	L Near	 0000019D _TEXT	
+  endDisplayZero . . . . . . . .	L Near	 000001B5 _TEXT	
 DisplayUsername  . . . . . . . .	P Near	 00000058 _TEXT	Length= 0000001F Public STDCALL
 DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -573,7 +586,8 @@ OpenInputFile  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 ParseDecimal32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ParseInteger32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 PeekConsoleInputA  . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-ProcessData  . . . . . . . . . .	P Near	 000000F1 _TEXT	Length= 00000039 Public STDCALL
+ProcessData  . . . . . . . . . .	P Near	 000000F1 _TEXT	Length= 00000048 Public STDCALL
+  endRound . . . . . . . . . . .	L Near	 00000138 _TEXT	
 Random32 . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 RandomRange  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Randomize  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -626,9 +640,9 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 000001DA _TEXT	Length= 0000004A Public STDCALL
-  validNumbersEntered  . . . . .	L Near	 0000020E _TEXT	
-  DisplayOutroL  . . . . . . . .	L Near	 00000218 _TEXT	
+main . . . . . . . . . . . . . .	P Near	 000001E9 _TEXT	Length= 0000004A Public STDCALL
+  validNumbersEntered  . . . . .	L Near	 0000021D _TEXT	
+  DisplayOutroL  . . . . . . . .	L Near	 00000227 _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C

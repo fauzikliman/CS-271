@@ -151,28 +151,41 @@ GetUserData ENDP
 
 ; Calculate avg
 ProcessData PROC
-	; Use the FPU to calculate the avg of the sum
-	finit
-	fild	validNumbersSum
-	fidiv	validNumbersCount
-	; Multiply the avg by the accurace of the rounding
-	; and use the FPU to round it 
-	fimul	avgRoundingPoint
-	frndint
-	; Truncate the result to only keep the precision we wanted and 
-	; move it into a variable
-	fisttp	avgIntegerPart
-	; Split the avg into integer/fractional parts 
-	; by dividing the avg in the FPU by the wanted rounding
-	; and store the quotient into the integer part and remainder
-	; into the fractional part
-	mov		eax, avgIntegerPart
+	; Get the avg integer/fractional part
+	mov		eax, validNumbersSum
 	cdq
-	mov		ecx, avgRoundingPoint
-	idiv	ecx
+	idiv	validNumbersCount
+	; Move the quotient into the integer part variable
 	mov		avgIntegerPart, eax
+	; Make the remainder a positive number to make calculating the 
+	; fractional part easier
 	neg		edx
-	mov		avgFractionalPart, edx
+	; Mulitply the remainder by the rounding precision and
+	; divide that by the number of valid numbers to find the 
+	; fractional part of the avg
+	mov		eax, edx
+	mul		avgRoundingPoint
+	cdq
+	div		validNumbersCount
+	mov		avgFractionalPart, eax
+	; Mulitply the remainder of the fractional part division
+	; by 10 and divide it by the number of valid numbers and
+	; compare it with 5 to see if we need to increment the 
+	; fractional part by 1 due to rounding
+	mov		eax, edx
+	mov		ebx, 10
+	mul		ebx
+	cdq
+	div		validNumbersCount
+	cmp		eax, 5
+	; If the result is less than 5 then we don't need to
+	; increment the rounding by 1
+	jl		endRound
+	; Otherwise, increment the rounding by 1
+	mov		eax, avgFractionalPart
+	inc		eax
+	mov		avgFractionalPart, eax
+endRound:
 	ret
 ProcessData ENDP
 
