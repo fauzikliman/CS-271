@@ -217,18 +217,19 @@ DisplayResults PROC
 	; Display the fractional part by first displaying
 	; 0's depending on the fractional part values, ex
 	; 1, 10, 100
-	; Divide the wanted precision for the rounding by 10,
-	; subtract 1 from it, if the fractional part is
-	; bigger than that then we can display the fractional
-	; part, otherwise display an 0 and repeat the process
+	; Divide the wanted precision by 10, if the fractional part is 
+	; greater than or equal to that then we can display the fractional part, 
+	; otherwise display an 0 and divide the result by 10 repeatedly 
+	; until the fractional part is bigger or the result is 1
 	mov		eax, avgRoundingPoint
 	mov		ebx, 10
 begDisplayZero:
 	cdq
 	div		ebx
-	dec		eax
 	cmp		avgFractionalPart, eax
-	jg		endDisplayZero
+	jge		endDisplayZero
+	cmp     eax, 1
+	je		endDisplayZero
 	mov		edx, OFFSET zeroMsg
 	call	WriteString
 	jmp		begDisplayZero

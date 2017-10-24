@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/22/17 16:32:24
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/23/17 21:08:28
 1Integer Accumulator     (integer-accumulator.asm	     Page 1 - 1
 
 
@@ -341,90 +341,91 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/22/17 16:32:24
 					; Display the fractional part by first displaying
 					; 0's depending on the fractional part values, ex
 					; 1, 10, 100
-					; Divide the wanted precision for the rounding by 10,
-					; subtract 1 from it, if the fractional part is
-					; bigger than that then we can display the fractional
-					; part, otherwise display an 0 and repeat the process
+					; Divide the wanted precision by 10, if the fractional part is 
+					; greater than or equal to that then we can display the fractional part, 
+					; otherwise display an 0 and divide the result by 10 repeatedly 
+					; until the fractional part is bigger or the result is 1
  00000193  A1 0000025C R		mov		eax, avgRoundingPoint
  00000198  BB 0000000A			mov		ebx, 10
  0000019D			begDisplayZero:
  0000019D  99				cdq
  0000019E  F7 F3			div		ebx
- 000001A0  48				dec		eax
- 000001A1  39 05 00000264 R		cmp		avgFractionalPart, eax
- 000001A7  7F 0C			jg		endDisplayZero
- 000001A9  BA 0000025A R		mov		edx, OFFSET zeroMsg
- 000001AE  E8 00000000 E		call	WriteString
- 000001B3  EB E8			jmp		begDisplayZero
- 000001B5			endDisplayZero:
- 000001B5  A1 00000264 R		mov		eax, avgFractionalPart
- 000001BA  E8 00000000 E		call	WriteDec
- 000001BF  E8 00000000 E		call	CrLf
- 000001C4  C3				ret
- 000001C5			DisplayResults ENDP
+ 000001A0  39 05 00000264 R		cmp		avgFractionalPart, eax
+ 000001A6  7D 11			jge		endDisplayZero
+ 000001A8  83 F8 01			cmp     eax, 1
+ 000001AB  74 0C			je		endDisplayZero
+ 000001AD  BA 0000025A R		mov		edx, OFFSET zeroMsg
+ 000001B2  E8 00000000 E		call	WriteString
+ 000001B7  EB E4			jmp		begDisplayZero
+ 000001B9			endDisplayZero:
+ 000001B9  A1 00000264 R		mov		eax, avgFractionalPart
+ 000001BE  E8 00000000 E		call	WriteDec
+ 000001C3  E8 00000000 E		call	CrLf
+ 000001C8  C3				ret
+ 000001C9			DisplayResults ENDP
 
 				; Display outro msg
- 000001C5			DisplayOutro PROC
+ 000001C9			DisplayOutro PROC
 					; Display outro msg
- 000001C5  BA 0000011B R		mov		edx, OFFSET outroMsg
- 000001CA  E8 00000000 E		call	WriteString
+ 000001C9  BA 0000011B R		mov		edx, OFFSET outroMsg
+ 000001CE  E8 00000000 E		call	WriteString
 					; Display the users name
- 000001CF  BA 000001B0 R		mov		edx, OFFSET username
- 000001D4  E8 00000000 E		call	WriteString
+ 000001D3  BA 000001B0 R		mov		edx, OFFSET username
+ 000001D8  E8 00000000 E		call	WriteString
 					; Display the period
- 000001D9  BA 00000169 R		mov		edx, OFFSET periodMsg
- 000001DE  E8 00000000 E		call	WriteString
- 000001E3  E8 00000000 E		call	CrLf
- 000001E8  C3				ret
- 000001E9			DisplayOutro ENDP
+ 000001DD  BA 00000169 R		mov		edx, OFFSET periodMsg
+ 000001E2  E8 00000000 E		call	WriteString
+ 000001E7  E8 00000000 E		call	CrLf
+ 000001EC  C3				ret
+ 000001ED			DisplayOutro ENDP
 
- 000001E9			main PROC
+ 000001ED			main PROC
 				; (insert executable instructions here)
 					; Display program info
- 000001E9  E8 FFFFFE12			call	DisplayProgramInfo
+ 000001ED  E8 FFFFFE0E			call	DisplayProgramInfo
 
 					; Get username
- 000001EE  E8 FFFFFE3B			call	GetUsername
+ 000001F2  E8 FFFFFE37			call	GetUsername
 
 					; Display username
- 000001F3  E8 FFFFFE60			call	DisplayUsername
+ 000001F7  E8 FFFFFE5C			call	DisplayUsername
 
 					; Display program instructions
- 000001F8  E8 FFFFFE7A			call	DisplayProgramInstructions
+ 000001FC  E8 FFFFFE76			call	DisplayProgramInstructions
 
 					; Get user data
- 000001FD  E8 FFFFFE94			call	GetUserData
+ 00000201  E8 FFFFFE90			call	GetUserData
 
 					; Display special msg and go to outro if no valid numbers were entered
- 00000202  A1 000001D8 R		mov		eax, validNumbersCount
- 00000207  83 F8 00			cmp		eax, 0
- 0000020A  75 11			jne		validNumbersEntered
- 0000020C  BA 000000FC R		mov		edx, OFFSET noValidNumbersMsg
- 00000211  E8 00000000 E		call	WriteString
- 00000216  E8 00000000 E		call	CrLf
- 0000021B  EB 0A			jmp		DisplayOutroL
+ 00000206  A1 000001D8 R		mov		eax, validNumbersCount
+ 0000020B  83 F8 00			cmp		eax, 0
+ 0000020E  75 11			jne		validNumbersEntered
+ 00000210  BA 000000FC R		mov		edx, OFFSET noValidNumbersMsg
+ 00000215  E8 00000000 E		call	WriteString
+ 0000021A  E8 00000000 E		call	CrLf
+ 0000021F  EB 0A			jmp		DisplayOutroL
 
- 0000021D			validNumbersEntered:
+ 00000221			validNumbersEntered:
 					; Process user data
- 0000021D  E8 FFFFFECF			call	ProcessData
+ 00000221  E8 FFFFFECB			call	ProcessData
 
 					; Display user data results
- 00000222  E8 FFFFFF12			call	DisplayResults
+ 00000226  E8 FFFFFF0E			call	DisplayResults
 
- 00000227			DisplayOutroL:
+ 0000022B			DisplayOutroL:
 					; Display outro
- 00000227  E8 FFFFFF99			call	DisplayOutro
+ 0000022B  E8 FFFFFF99			call	DisplayOutro
 
 					exit	; exit to operating system
- 0000022C  6A 00	   *	    push   +000000000h
- 0000022E  E8 00000000 E   *	    call   ExitProcess
+ 00000230  6A 00	   *	    push   +000000000h
+ 00000232  E8 00000000 E   *	    call   ExitProcess
 
- 00000233			main ENDP
+ 00000237			main ENDP
 
 				; (insert additional procedures here)
 
 				END main
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/22/17 16:32:24
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    10/23/17 21:08:28
 1Integer Accumulator     (integer-accumulator.asm	     Symbols 2 - 1
 
 
@@ -519,7 +520,7 @@ Segments and Groups:
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
 _DATA  . . . . . . . . . . . . .	32 Bit	 0000026C Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000233 Para	  Public  'CODE'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 00000237 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -533,12 +534,12 @@ CreateFileA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-DisplayOutro . . . . . . . . . .	P Near	 000001C5 _TEXT	Length= 00000024 Public STDCALL
+DisplayOutro . . . . . . . . . .	P Near	 000001C9 _TEXT	Length= 00000024 Public STDCALL
 DisplayProgramInfo . . . . . . .	P Near	 00000000 _TEXT	Length= 0000002E Public STDCALL
 DisplayProgramInstructions . . .	P Near	 00000077 _TEXT	Length= 0000001F Public STDCALL
-DisplayResults . . . . . . . . .	P Near	 00000139 _TEXT	Length= 0000008C Public STDCALL
+DisplayResults . . . . . . . . .	P Near	 00000139 _TEXT	Length= 00000090 Public STDCALL
   begDisplayZero . . . . . . . .	L Near	 0000019D _TEXT	
-  endDisplayZero . . . . . . . .	L Near	 000001B5 _TEXT	
+  endDisplayZero . . . . . . . .	L Near	 000001B9 _TEXT	
 DisplayUsername  . . . . . . . .	P Near	 00000058 _TEXT	Length= 0000001F Public STDCALL
 DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -640,9 +641,9 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 000001E9 _TEXT	Length= 0000004A Public STDCALL
-  validNumbersEntered  . . . . .	L Near	 0000021D _TEXT	
-  DisplayOutroL  . . . . . . . .	L Near	 00000227 _TEXT	
+main . . . . . . . . . . . . . .	P Near	 000001ED _TEXT	Length= 0000004A Public STDCALL
+  validNumbersEntered  . . . . .	L Near	 00000221 _TEXT	
+  DisplayOutroL  . . . . . . . .	L Near	 0000022B _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
