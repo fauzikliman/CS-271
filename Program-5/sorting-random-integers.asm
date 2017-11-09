@@ -15,7 +15,7 @@ TITLE Sorting Random Integers     (sorting-random-integers.asm)
 
 INCLUDE Irvine32.inc
 
-MIN_ARRAY_SIZE = 5
+MIN_ARRAY_SIZE = 10
 MAX_ARRAY_SIZE = 200
 
 MIN_ARRAY_NUM = 100
@@ -36,9 +36,8 @@ numberPaddingMsg	BYTE	9, 0
 unsortedArrayMsg	BYTE	"The unsorted random numbers:", 10, 13, 0
 sortedArrayMsg		BYTE	"The sorted list:", 10, 13, 0
 medianMsg			BYTE	"The median is ", 0
-
 arraySize			DWORD	0
-array				DWORD	MAX_ARRAY_SIZE DUP(100)
+array				DWORD	MAX_ARRAY_SIZE DUP(0)
 
 .code
 
@@ -54,11 +53,6 @@ main PROC
 	push	OFFSET arraySize
 	call	GetData
 
-	; For debugging
-	mov		eax, arraySize
-	call	WriteDec
-	call	CrLf
-
 	; Generate amount of numbers specified by user randomly
 	push	OFFSET array
 	push	arraySize
@@ -71,6 +65,8 @@ main PROC
 	call	DisplayList
 
 	; Sort the array
+	push	OFFSET array
+	push	arraySize
 	call	SortList
 
 	; Display the median of the array
@@ -137,6 +133,7 @@ invalidInput:
 	; Valid input was given by th user, update the value in the parameter
 endUserInput:
 	mov		[edi], eax
+	call	CrLf
 
 	; Clean up the stack frame restore all the registers
 	popad
@@ -175,7 +172,7 @@ begFill:
 	add		eax, MIN_ARRAY_NUM
 
 	; Set current element in array to the random number
-	mov		[edi], ecx	; Should be eax, but ecx for now for debugging
+	mov		[edi], eax
 
 	; Move to next element in the array and repeat
 	add		edi, 4
@@ -187,10 +184,196 @@ begFill:
 	ret		8
 FillArray ENDP
 
-; Sorts the array
+; Procedure to sort the array recursively using quickSort
+; Recieves: address of DWORD array to fill, array size
+; Returns: none
+; Preconditions: none
+; Registers changed: none
 SortList PROC
-	ret
+
+	; Setup the stack frame and save all registers
+	push	ebp
+	mov		ebp, esp
+	pushad
+
+	; Call the QuickSort procedure with the address of the array and the
+	; start index, and end index
+	mov		eax, [ebp + 8]
+	dec		eax
+
+	push	[ebp + 12]
+	push	0
+	push	eax
+	call	QuickSort
+
+	; Clean the stack frame and restore all the registers
+	popad
+	pop		ebp
+	ret		8
 SortList ENDP
+
+; Procedure to swap two elements in a DWORD array
+; Recieves: address of DWORD array to fill, index A, index B
+; Returns: the elements in the array are swapped
+; Preconditions: start/end index are within the bounds of the array
+; Registers changed: none
+SwapArrayElements PROC
+	
+	; Setup the stack fram and save all the registers
+	push	ebp
+	mov		ebp, esp
+	pushad
+
+	; Set the address of the array to edi
+	mov		edi, [ebp + 16]
+	
+	; Move the index parameters to registers for indexing the array
+	mov		ecx, [ebp + 12]
+	mov		edx, [ebp + 8]
+
+	; Move the values of the array into registers
+	mov		eax, [edi + ecx * 4]
+	mov		ebx, [edi + edx * 4]
+
+	; Swap the elements of the array
+	mov		[edi + ecx * 4], ebx
+	mov		[edi + edx * 4], eax
+
+	; Clean the stack frame and restore all the registers
+	popad
+	pop		ebp
+	ret		12
+SwapArrayElements ENDP
+
+; Procedure put the pivot point, the first element, in the correct position
+;	relative to the other elements, i.e. all elements greater
+;	than or equal to the pivot are placed to the left of it and all
+;	elements less than the pivot are placed to the right of it
+; Recieves: address of DWORD array to fill, start index, end index, address of variable to
+;	contain the index of the pivot
+; Returns: the index of the pivot
+; Preconditions: none
+; Registers changed: none
+Partition PROC
+	
+	; Setup local variables and save all the registers
+	LOCAL	pivot:DWORD
+	LOCAL	pivotIndex:DWORD
+	pushad
+
+	; Store the address of the array to be sorted into esi
+	mov		esi, [ebp + 20]
+
+	; Use the ecx as the index counter, set it to starting index parameter
+	mov		ecx, [ebp + 16]
+
+	; Use edx as the end index
+	mov		edx, [ebp + 12]
+
+	; Set the pivot to first element in array, pivot index to start index
+	mov		eax, [esi + edx * 4]
+	mov		pivot, eax
+	mov		pivotIndex, ecx
+
+	; Loop over each element, for elements greater than or equal to the pivot
+	; swap the element and the pivot index, increment the pivot index
+begLoop:
+	; Check if the current element is greater than or equal to the pivot
+	; if so, swap the elements
+	mov		eax, [esi + ecx * 4]
+	cmp		eax, pivot
+	jl		endSwap
+
+	; Swap the pivot index and current elem
+	push	esi			; address of the array
+	push	ecx			; current index
+	push	pivotIndex	; pivot index
+	call	SwapArrayElements
+	
+	inc		pivotIndex
+endSwap:
+	inc		ecx
+	cmp		ecx, edx
+	jl		begLoop
+
+	; Swap the pivot with the pivot index
+	push	esi
+	push	pivotIndex
+	push	edx
+	call	SwapArrayElements
+
+	; Set the pivot index to the address of variable passed in
+	mov		edi, [ebp + 8]
+	mov		eax, pivotIndex
+	mov		[edi], eax
+	
+	; Clean the stack frame and restore all the registers
+	popad
+	ret		16
+Partition ENDP
+
+; Procedure to sort the array recursively using quickSort
+; Recieves: address of DWORD array to fill, start index, end index
+; Returns: array is sorted in descending order
+; Preconditions: none
+; Registers changed: none
+QuickSort PROC
+
+	; Setup local variables and save all the registers
+	LOCAL	arrayAddress:DWORD
+	LOCAL	lo:DWORD
+	LOCAL	hi:DWORD
+	LOCAL	pi:DWORD
+	pushad
+
+	; Initialize the local variables to passed in parameters
+	mov		eax, [ebp + 16]
+	mov		arrayAddress, eax
+
+	mov		eax, [ebp + 12]
+	mov		lo, eax
+
+	mov		eax, [ebp + 8]
+	mov		hi, eax
+
+	; Only recursively call quickSort if lo < hi
+	mov		eax, lo
+	cmp		eax, hi
+	jge		endSort
+
+	; Get the address of the pi local variable
+	mov		eax, ebp
+	sub		eax, 16
+
+	push	arrayAddress
+	push	lo
+	push	hi
+	push	eax
+	call	Partition
+
+	; Call quickSort with lo and pi - 1
+	mov		eax, pi
+	dec		eax
+
+	push	arrayAddress
+	push	lo
+	push	eax
+	call	QuickSort
+
+	; Call quickSort with pi + 1 and hi
+	mov		eax, pi
+	inc		eax
+
+	push	arrayAddress
+	push	eax
+	push	hi
+	call	QuickSort
+
+endSort:
+	; Clean the stack frame and restore all the registers
+	popad
+	ret		12
+QuickSort ENDP
 
 ; Procedure to display the median of the array
 ; Recieves: address of DWORD array to fill, array size
@@ -244,6 +427,9 @@ DisplayMedian PROC
 showMedian:
 	mov		eax, median
 	call	WriteDec
+	mov		edx, OFFSET periodChar
+	call	WriteString
+	call	CrLf
 	call	CrLf
 
 	; Clean the stack frame and restore all the registers
@@ -390,6 +576,7 @@ displayArrayValue:
 
 	; Loop printing the array values
 	loop	begDisplayList
+	call	CrLf
 	call	CrLf
 
 	; Restore all the registers
