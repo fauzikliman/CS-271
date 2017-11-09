@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/09/17 00:54:05
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/09/17 15:00:00
 9Sorting Random Integers     (sorting-random-integers.asm    Page 1 - 1
 
 
@@ -158,7 +158,7 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/09/17 00:54:05
  00000024  68 00000190 R		push	OFFSET array
  00000029  FF 35 0000018C R		push	arraySize
  0000002F  68 0000014B R		push	OFFSET unsortedArrayMsg
- 00000034  E8 000001EA			call	DisplayList
+ 00000034  E8 000001E7			call	DisplayList
 
 					; Sort the array
  00000039  68 00000190 R		push	OFFSET array
@@ -174,7 +174,7 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/09/17 00:54:05
  00000059  68 00000190 R		push	OFFSET array
  0000005E  FF 35 0000018C R		push	arraySize
  00000064  68 0000016A R		push	OFFSET sortedArrayMsg
- 00000069  E8 000001B5			call	DisplayList
+ 00000069  E8 000001B2			call	DisplayList
 
 					exit	; exit to operating system
  0000006E  6A 00	   *	    push   +000000000h
@@ -295,7 +295,8 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/09/17 00:54:05
  000000EA  60				pushad
 
 					; Call the QuickSort procedure with the address of the array and the
-					; start index, and end index
+					; start index, and end index. Start/End index are 0 based, thus why we're
+					; subtracting 1 from the array size
  000000EB  8B 45 08			mov		eax, [ebp + 8]
  000000EE  48				dec		eax
 
@@ -343,7 +344,7 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/09/17 00:54:05
  0000011A  C2 000C			ret		12
  0000011D			SwapArrayElements ENDP
 
-				; Procedure put the pivot point, the first element, in the correct position
+				; Procedure put the pivot point, the last element, in the correct position
 				;	relative to the other elements, i.e. all elements greater
 				;	than or equal to the pivot are placed to the left of it and all
 				;	elements less than the pivot are placed to the right of it
@@ -490,9 +491,10 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/09/17 00:54:05
 
 					; Setup local variables and save all the registers
 					LOCAL	median:DWORD
+					LOCAL	divisor:REAL4
  000001C1  55		   *	    push   ebp
  000001C2  8B EC	   *	    mov    ebp, esp
- 000001C4  83 C4 FC	   *	    add    esp, 0FFFFFFFCh
+ 000001C4  83 C4 F8	   *	    add    esp, 0FFFFFFF8h
  000001C7  60				pushad
 
 					; Move the address of the array to esi
@@ -502,50 +504,53 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/09/17 00:54:05
  000001CB  BA 0000017D R		mov		edx, OFFSET medianMsg
  000001D0  E8 00000000 E		call	WriteString
 
-					; Calculate the middle index of the array where the median will be
- 000001D5  8B 45 08			mov		eax, [ebp + 8]		; Move array size to eax for division
- 000001D8  BB 00000002			mov		ebx, 2
- 000001DD  99				cdq
- 000001DE  F7 F3			div		ebx
- 000001E0  8B C8			mov		ecx, eax			; Move median index to ecx
+					; Move 2 into divisor so we can use it to divide the FPU
+ 000001D5  C7 45 F8			mov		divisor, 2
+	   00000002
 
-					; Move value in array to median variable
- 000001E2  8B 04 8E			mov		eax, [esi + ecx * 4]
- 000001E5  89 45 FC			mov		median, eax
+					; Calculate the middle index of the array where the median will be
+ 000001DC  8B 45 08			mov		eax, [ebp + 8]		; Move array size to eax for division
+ 000001DF  BB 00000002			mov		ebx, 2
+ 000001E4  99				cdq
+ 000001E5  F7 F3			div		ebx
+ 000001E7  8B C8			mov		ecx, eax			; Move median index to ecx
+
+					; Push value in array to the FPU stack
+ 000001E9  DB 04 8E			FILD	DWORD PTR [esi + ecx * 4]
 
 					; If there is a remainder of 0, it means that the array has an even number of
 					; elements, so we need to add the 2 middle elements and average them, rounded to nearest
 					; integer to get the median
- 000001E8  83 FA 00			cmp		edx, 0
- 000001EB  75 15			jne		showMedian
- 000001ED  49				dec		ecx						; Descrement ecx to the previous index in the array
- 000001EE  8B 45 FC			mov		eax, median
- 000001F1  03 04 8E			add		eax, [esi + ecx * 4]	; Add the 2 middle elements together
- 000001F4  99				cdq
- 000001F5  F7 F3			div		ebx						; Divide by 2 get average, ebx still contains 2 from previous division
-					
-					; Move the avg of the middle elements of median
- 000001F7  89 45 FC			mov		median, eax
+ 000001EC  83 FA 00			cmp		edx, 0
+ 000001EF  75 0B			jne		showMedian
 
-					; If there is a remainder from the avg division we need to round the median up
- 000001FA  83 FA 01			cmp		edx, 1
- 000001FD  75 03			jne		showMedian
- 000001FF  FF 45 FC			inc		median
+					; Descrement ecx to the previous index in the array and push the value to the FPU stack
+ 000001F1  49				dec		ecx
+ 000001F2  DB 04 8E			FILD	DWORD PTR [esi + ecx * 4]
+
+					; Add the two values in the FPU stack together and divide them by 2 to get the average
+ 000001F5  DE C1			FADD
+ 000001F7  DB 45 F8			FILD	divisor
+ 000001FA  DE F9			FDIV
 
 					; Display the median
- 00000202			showMedian:
- 00000202  8B 45 FC			mov		eax, median
- 00000205  E8 00000000 E		call	WriteDec
- 0000020A  BA 00000147 R		mov		edx, OFFSET periodChar
- 0000020F  E8 00000000 E		call	WriteString
- 00000214  E8 00000000 E		call	CrLf
- 00000219  E8 00000000 E		call	CrLf
+ 000001FC			showMedian:
+					; Round the median in the FPU stack to nearest integer and store it into median
+ 000001FC  DB 55 FC			FIST	median
+
+					; Display the median
+ 000001FF  8B 45 FC			mov		eax, median
+ 00000202  E8 00000000 E		call	WriteDec
+ 00000207  BA 00000147 R		mov		edx, OFFSET periodChar
+ 0000020C  E8 00000000 E		call	WriteString
+ 00000211  E8 00000000 E		call	CrLf
+ 00000216  E8 00000000 E		call	CrLf
 
 					; Clean the stack frame and restore all the registers
- 0000021E  61				popad
- 0000021F  C9		   *	    leave  
- 00000220  C2 0008			ret		8
- 00000223			DisplayMedian ENDP
+ 0000021B  61				popad
+ 0000021C  C9		   *	    leave  
+ 0000021D  C2 0008			ret		8
+ 00000220			DisplayMedian ENDP
 
 				; Displays the array
 				; Procedure to display a message and an array
@@ -553,7 +558,7 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/09/17 00:54:05
 				; Returns: none
 				; Preconditions: none
 				; Registers changed: none
- 00000223			DisplayList PROC
+ 00000220			DisplayList PROC
 
 					; The idea behind printing the list in column order is to split the output
 					; window into two sections. The first section will be N cols x M rows where N is the remainder
@@ -582,131 +587,131 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/09/17 00:54:05
 					LOCAL	colNum:DWORD
 					LOCAL	bytesPerElem:DWORD
 					LOCAL	arrayAddress:DWORD
- 00000223  55		   *	    push   ebp
- 00000224  8B EC	   *	    mov    ebp, esp
- 00000226  83 C4 E0	   *	    add    esp, 0FFFFFFE0h
- 00000229  60				pushad
+ 00000220  55		   *	    push   ebp
+ 00000221  8B EC	   *	    mov    ebp, esp
+ 00000223  83 C4 E0	   *	    add    esp, 0FFFFFFE0h
+ 00000226  60				pushad
 
 					; Bytes each element of DWORD array takes up
- 0000022A  C7 45 E4			mov		bytesPerElem, 4
+ 00000227  C7 45 E4			mov		bytesPerElem, 4
 	   00000004
 
 					; Move the address of the array paremeter to arrayAddress
- 00000231  8B 75 10			mov		esi, [ebp + 16]
- 00000234  89 75 E0			mov		arrayAddress, esi
+ 0000022E  8B 75 10			mov		esi, [ebp + 16]
+ 00000231  89 75 E0			mov		arrayAddress, esi
 
 					; Move the value of the array size paremeter to ecx for looping
- 00000237  8B 4D 0C			mov		ecx, [ebp + 12]
+ 00000234  8B 4D 0C			mov		ecx, [ebp + 12]
 
 					; Display the message that was passed in
- 0000023A  8B 55 08			mov		edx, [ebp + 8]
- 0000023D  E8 00000000 E		call	WriteString
+ 00000237  8B 55 08			mov		edx, [ebp + 8]
+ 0000023A  E8 00000000 E		call	WriteString
 
 					; Calculate the amount rows of numbers that'll be printed for section 1 and 2
- 00000242  BB 0000000A			mov		ebx, NUM_PER_LINE
- 00000247  8B C1			mov		eax, ecx			; ecx contains the size of the array
- 00000249  99				cdq
- 0000024A  F7 F3			div		ebx
- 0000024C  89 45 F0			mov		sec2Rows, eax
+ 0000023F  BB 0000000A			mov		ebx, NUM_PER_LINE
+ 00000244  8B C1			mov		eax, ecx			; ecx contains the size of the array
+ 00000246  99				cdq
+ 00000247  F7 F3			div		ebx
+ 00000249  89 45 F0			mov		sec2Rows, eax
 
 					; Section 1 only exists if all the elements could not be displayed in full rows of
 					; NUM_PER_LINE
- 0000024F  83 FA 00			cmp		edx, 0
- 00000252  75 17			jne		setupSec1Data
+ 0000024C  83 FA 00			cmp		edx, 0
+ 0000024F  75 17			jne		setupSec1Data
 					
 					; Set sec1 data to 0 since all elements could be displayed in full rows of NUM_PER_LINE
- 00000254  C7 45 F4			mov		sec1ElemCount, 0
+ 00000251  C7 45 F4			mov		sec1ElemCount, 0
 	   00000000
- 0000025B  C7 45 FC			mov		sec1Cols, 0
+ 00000258  C7 45 FC			mov		sec1Cols, 0
 	   00000000
- 00000262  C7 45 F8			mov		sec1Rows, 0
+ 0000025F  C7 45 F8			mov		sec1Rows, 0
 	   00000000
- 00000269  EB 16			jmp		endSecDataCalc
+ 00000266  EB 16			jmp		endSecDataCalc
 
- 0000026B			setupSec1Data:
+ 00000268			setupSec1Data:
 					; Set sec1Rows to sec2Rows + 1, and sec1Cols to the remainder of array size divided by NUM_PER_LINE
- 0000026B  8B 45 F0			mov		eax, sec2Rows
- 0000026E  40				inc		eax
- 0000026F  89 45 F8			mov		sec1Rows, eax
- 00000272  89 55 FC			mov		sec1Cols, edx
+ 00000268  8B 45 F0			mov		eax, sec2Rows
+ 0000026B  40				inc		eax
+ 0000026C  89 45 F8			mov		sec1Rows, eax
+ 0000026F  89 55 FC			mov		sec1Cols, edx
 
 					; Set the amount of elements in section 1
- 00000275  8B 45 FC			mov		eax, sec1Cols
- 00000278  F7 65 F8			mul		sec1Rows
- 0000027B  F7 65 E4			mul		bytesPerElem
- 0000027E  89 45 F4			mov		sec1ElemCount, eax
+ 00000272  8B 45 FC			mov		eax, sec1Cols
+ 00000275  F7 65 F8			mul		sec1Rows
+ 00000278  F7 65 E4			mul		bytesPerElem
+ 0000027B  89 45 F4			mov		sec1ElemCount, eax
 
- 00000281			endSecDataCalc:
+ 0000027E			endSecDataCalc:
 					; Prepare printing the array by column
- 00000281  C7 45 EC			mov		rowNum, 0				; will contain the row number we're on starting at 0
+ 0000027E  C7 45 EC			mov		rowNum, 0				; will contain the row number we're on starting at 0
 	   00000000
- 00000288  C7 45 E8			mov		colNum, 0				; will contain the col number we're on starting at 0
+ 00000285  C7 45 E8			mov		colNum, 0				; will contain the col number we're on starting at 0
 	   00000000
 
- 0000028F			begDisplayList:
+ 0000028C			begDisplayList:
 					; Print newline if we've displayed the maximum amount of numbers per row
- 0000028F  83 7D E8 0A			cmp		colNum, NUM_PER_LINE
- 00000293  7C 0F			jl		endDisplayNewline
- 00000295  E8 00000000 E		call	CrLf
- 0000029A  FF 45 EC			inc		rowNum					; increment row number
- 0000029D  C7 45 E8			mov		colNum, 0				; reset col number
+ 0000028C  83 7D E8 0A			cmp		colNum, NUM_PER_LINE
+ 00000290  7C 0F			jl		endDisplayNewline
+ 00000292  E8 00000000 E		call	CrLf
+ 00000297  FF 45 EC			inc		rowNum					; increment row number
+ 0000029A  C7 45 E8			mov		colNum, 0				; reset col number
 	   00000000
 
- 000002A4			endDisplayNewline:
- 000002A4  8B 45 E8			mov		eax, colNum
- 000002A7  3B 45 FC			cmp		eax, sec1Cols
- 000002AA  8B 75 E0			mov		esi, arrayAddress
- 000002AD  7D 10			jge		sec2Area
+ 000002A1			endDisplayNewline:
+ 000002A1  8B 45 E8			mov		eax, colNum
+ 000002A4  3B 45 FC			cmp		eax, sec1Cols
+ 000002A7  8B 75 E0			mov		esi, arrayAddress
+ 000002AA  7D 10			jge		sec2Area
 
 					; We're displaying values to the section 1 area of the output
 					; To display in section 1 we multiply the current col num by the 
 					; amount of rows in section 1 and add the row num as the offset
- 000002AF  8B 45 E8			mov		eax, colNum
- 000002B2  F7 65 F8			mul		sec1Rows
- 000002B5  03 45 EC			add		eax, rowNum
- 000002B8  F7 65 E4			mul		bytesPerElem
- 000002BB  03 F0			add		esi, eax
- 000002BD  EB 14			jmp		displayArrayValue
+ 000002AC  8B 45 E8			mov		eax, colNum
+ 000002AF  F7 65 F8			mul		sec1Rows
+ 000002B2  03 45 EC			add		eax, rowNum
+ 000002B5  F7 65 E4			mul		bytesPerElem
+ 000002B8  03 F0			add		esi, eax
+ 000002BA  EB 14			jmp		displayArrayValue
 
- 000002BF			sec2Area:
+ 000002BC			sec2Area:
 					; We're displaying values to the section 2 area of the output
 					; To display in section 2 we get difference between the current col num
 					; and the amount of cols in section 1, multipy that by the amount of rows
 					; in section 2 and add the row num as the offset, then add the amount elems
 					; that exist in section 1 before section 2
- 000002BF  8B 45 E8			mov		eax, colNum
- 000002C2  2B 45 FC			sub		eax, sec1Cols
- 000002C5  F7 65 F0			mul		sec2Rows
- 000002C8  03 45 EC			add		eax, rowNum
- 000002CB  F7 65 E4			mul		bytesPerElem
- 000002CE  03 45 F4			add		eax, sec1ElemCount
- 000002D1  03 F0			add		esi, eax
+ 000002BC  8B 45 E8			mov		eax, colNum
+ 000002BF  2B 45 FC			sub		eax, sec1Cols
+ 000002C2  F7 65 F0			mul		sec2Rows
+ 000002C5  03 45 EC			add		eax, rowNum
+ 000002C8  F7 65 E4			mul		bytesPerElem
+ 000002CB  03 45 F4			add		eax, sec1ElemCount
+ 000002CE  03 F0			add		esi, eax
 
- 000002D3			displayArrayValue:
+ 000002D0			displayArrayValue:
 					; Display the value in the array
- 000002D3  8B 06			mov		eax, [esi]
- 000002D5  E8 00000000 E		call	WriteDec
+ 000002D0  8B 06			mov		eax, [esi]
+ 000002D2  E8 00000000 E		call	WriteDec
 					
 					; Display spaces after each number=
- 000002DA  BA 00000149 R		mov		edx, OFFSET numberPaddingMsg
- 000002DF  E8 00000000 E		call	WriteString
+ 000002D7  BA 00000149 R		mov		edx, OFFSET numberPaddingMsg
+ 000002DC  E8 00000000 E		call	WriteString
 
 					; Increment col number and number of numbers we've displayed
- 000002E4  FF 45 E8			inc		colNum
+ 000002E1  FF 45 E8			inc		colNum
 
 					; Loop printing the array values
- 000002E7  E2 A6			loop	begDisplayList
- 000002E9  E8 00000000 E		call	CrLf
- 000002EE  E8 00000000 E		call	CrLf
+ 000002E4  E2 A6			loop	begDisplayList
+ 000002E6  E8 00000000 E		call	CrLf
+ 000002EB  E8 00000000 E		call	CrLf
 
 					; Restore all the registers
- 000002F3  61				popad
- 000002F4  C9		   *	    leave  
- 000002F5  C2 000C			ret		12
- 000002F8			DisplayList ENDP
+ 000002F0  61				popad
+ 000002F1  C9		   *	    leave  
+ 000002F2  C2 000C			ret		12
+ 000002F5			DisplayList ENDP
 
 				END main
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/09/17 00:54:05
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/09/17 15:00:00
 9Sorting Random Integers     (sorting-random-integers.asm    Symbols 2 - 1
 
 
@@ -801,7 +806,7 @@ Segments and Groups:
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
 _DATA  . . . . . . . . . . . . .	32 Bit	 000004B0 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 000002F8 Para	  Public  'CODE'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 000002F5 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -815,7 +820,7 @@ CreateFileA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-DisplayList  . . . . . . . . . .	P Near	 00000223 _TEXT	Length= 000000D5 Public STDCALL
+DisplayList  . . . . . . . . . .	P Near	 00000220 _TEXT	Length= 000000D5 Public STDCALL
   sec1Cols . . . . . . . . . . .	DWord	 bp - 00000004
   sec1Rows . . . . . . . . . . .	DWord	 bp - 00000008
   sec1ElemCount  . . . . . . . .	DWord	 bp - 0000000C
@@ -824,15 +829,16 @@ DisplayList  . . . . . . . . . .	P Near	 00000223 _TEXT	Length= 000000D5 Public 
   colNum . . . . . . . . . . . .	DWord	 bp - 00000018
   bytesPerElem . . . . . . . . .	DWord	 bp - 0000001C
   arrayAddress . . . . . . . . .	DWord	 bp - 00000020
-  setupSec1Data  . . . . . . . .	L Near	 0000026B _TEXT	
-  endSecDataCalc . . . . . . . .	L Near	 00000281 _TEXT	
-  begDisplayList . . . . . . . .	L Near	 0000028F _TEXT	
-  endDisplayNewline  . . . . . .	L Near	 000002A4 _TEXT	
-  sec2Area . . . . . . . . . . .	L Near	 000002BF _TEXT	
-  displayArrayValue  . . . . . .	L Near	 000002D3 _TEXT	
-DisplayMedian  . . . . . . . . .	P Near	 000001C1 _TEXT	Length= 00000062 Public STDCALL
+  setupSec1Data  . . . . . . . .	L Near	 00000268 _TEXT	
+  endSecDataCalc . . . . . . . .	L Near	 0000027E _TEXT	
+  begDisplayList . . . . . . . .	L Near	 0000028C _TEXT	
+  endDisplayNewline  . . . . . .	L Near	 000002A1 _TEXT	
+  sec2Area . . . . . . . . . . .	L Near	 000002BC _TEXT	
+  displayArrayValue  . . . . . .	L Near	 000002D0 _TEXT	
+DisplayMedian  . . . . . . . . .	P Near	 000001C1 _TEXT	Length= 0000005F Public STDCALL
   median . . . . . . . . . . . .	DWord	 bp - 00000004
-  showMedian . . . . . . . . . .	L Near	 00000202 _TEXT	
+  divisor  . . . . . . . . . . .	DWord	 bp - 00000008
+  showMedian . . . . . . . . . .	L Near	 000001FC _TEXT	
 DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ExitProcess  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL

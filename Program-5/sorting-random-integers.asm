@@ -197,7 +197,8 @@ SortList PROC
 	pushad
 
 	; Call the QuickSort procedure with the address of the array and the
-	; start index, and end index
+	; start index, and end index. Start/End index are 0 based, thus why we're
+	; subtracting 1 from the array size
 	mov		eax, [ebp + 8]
 	dec		eax
 
@@ -245,7 +246,7 @@ SwapArrayElements PROC
 	ret		12
 SwapArrayElements ENDP
 
-; Procedure put the pivot point, the first element, in the correct position
+; Procedure put the pivot point, the last element, in the correct position
 ;	relative to the other elements, i.e. all elements greater
 ;	than or equal to the pivot are placed to the left of it and all
 ;	elements less than the pivot are placed to the right of it
@@ -384,6 +385,7 @@ DisplayMedian PROC
 
 	; Setup local variables and save all the registers
 	LOCAL	median:DWORD
+	LOCAL	divisor:REAL4
 	pushad
 
 	; Move the address of the array to esi
@@ -393,6 +395,9 @@ DisplayMedian PROC
 	mov		edx, OFFSET medianMsg
 	call	WriteString
 
+	; Move 2 into divisor so we can use it to divide the FPU
+	mov		divisor, 2
+
 	; Calculate the middle index of the array where the median will be
 	mov		eax, [ebp + 8]		; Move array size to eax for division
 	mov		ebx, 2
@@ -400,31 +405,30 @@ DisplayMedian PROC
 	div		ebx
 	mov		ecx, eax			; Move median index to ecx
 
-	; Move value in array to median variable
-	mov		eax, [esi + ecx * 4]
-	mov		median, eax
+	; Push value in array to the FPU stack
+	FILD	DWORD PTR [esi + ecx * 4]
 
 	; If there is a remainder of 0, it means that the array has an even number of
 	; elements, so we need to add the 2 middle elements and average them, rounded to nearest
 	; integer to get the median
 	cmp		edx, 0
 	jne		showMedian
-	dec		ecx						; Descrement ecx to the previous index in the array
-	mov		eax, median
-	add		eax, [esi + ecx * 4]	; Add the 2 middle elements together
-	cdq
-	div		ebx						; Divide by 2 get average, ebx still contains 2 from previous division
-	
-	; Move the avg of the middle elements of median
-	mov		median, eax
 
-	; If there is a remainder from the avg division we need to round the median up
-	cmp		edx, 1
-	jne		showMedian
-	inc		median
+	; Descrement ecx to the previous index in the array and push the value to the FPU stack
+	dec		ecx
+	FILD	DWORD PTR [esi + ecx * 4]
+
+	; Add the two values in the FPU stack together and divide them by 2 to get the average
+	FADD
+	FILD	divisor
+	FDIV
 
 	; Display the median
 showMedian:
+	; Round the median in the FPU stack to nearest integer and store it into median
+	FIST	median
+
+	; Display the median
 	mov		eax, median
 	call	WriteDec
 	mov		edx, OFFSET periodChar
