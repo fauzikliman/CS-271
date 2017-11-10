@@ -29,6 +29,10 @@ introMsg			BYTE	"Sorting Random Integer", 9, 9, 9, "Programmed by Fauzi Kliman",
 							"This program generates random numbers in the range [100 .. 999],", 10, 13,
 							"displays the original list, sorts the list, and calculates the", 10, 13,
 							"median value. Finally, it displays the list sorted in descending order.", 10, 13, 10, 13, 0
+extraCreditMsg		BYTE	"**EC: Numbers are displayed ordered by column", 10, 13,
+							"**EC: Quick Sort is used to sort the list", 10, 13,
+							"**EC: FPU is used for calculating and rounding the median", 10, 13,
+							"**EC: Numbers are generated into a file and then read from to fill the list", 10, 13, 10, 13, 0
 arraySizePrompt		BYTE	"How many numbers should be generated? [10 .. 200]: ", 0
 invalidInputMsg		BYTE	"Invalid input", 10, 13, 0
 periodChar			BYTE	".", 0
@@ -36,6 +40,7 @@ numberPaddingMsg	BYTE	9, 0
 unsortedArrayMsg	BYTE	"The unsorted random numbers:", 10, 13, 0
 sortedArrayMsg		BYTE	"The sorted list:", 10, 13, 0
 medianMsg			BYTE	"The median is ", 0
+numbersFilename		BYTE	"random-numbers.txt", 0
 arraySize			DWORD	0
 array				DWORD	MAX_ARRAY_SIZE DUP(0)
 
@@ -89,9 +94,19 @@ main ENDP
 ; Preconditions: none
 ; Registers changed: none
 Introduction PROC
+
+	; Save all the registers
 	pushad
+
+	; Display the intro message
 	mov		edx, OFFSET introMsg
 	call	WriteString
+
+	; Display the extra credit message
+	mov		edx, OFFSET extraCreditMsg
+	call	WriteString
+
+	; Restore all the registers
 	popad
 	ret
 Introduction ENDP
@@ -159,30 +174,144 @@ FillArray PROC
 	; Move the value of the array size parameter to ecx for looping later
 	mov		ecx, [ebp + 8]
 	
-	; Calculate the random range for the RandomRange procedure to be (MAX - MIN + 1)
-	mov		ebx, MAX_ARRAY_NUM
-	sub		ebx, MIN_ARRAY_NUM
-	inc		ebx
+	; Push the size of the array and generate random numbers to the numbers file
+	push	ecx
+	call	GenerateNumbersToFile
 
-	; Fill the array with random numbers
-begFill:
-	; Set eax to the random range and generate random number into eax
-	mov		eax, ebx
-	call	RandomRange
-	add		eax, MIN_ARRAY_NUM
-
-	; Set current element in array to the random number
-	mov		[edi], eax
-
-	; Move to next element in the array and repeat
-	add		edi, 4
-	loop	begFill
+	; Push the address of the array and the size of the array and read
+	; numbers from the numbers file
+	push	edi
+	push	ecx
+	call	ReadNumbersFromFileToArray
 
 	; Clean the stack frame and restore all the registers
 	popad
 	pop		ebp
 	ret		8
 FillArray ENDP
+
+; Procedure to generate random numbers to a file
+; Recieves: array size
+; Returns: none
+; Preconditions: none
+; Registers changed: none
+GenerateNumbersToFile PROC
+
+	; Setup local variables and save all the registers
+	LOCAL	randomNumber:DWORD
+	LOCAL	fileHandle:HANDLE
+	pushad
+
+	; Calculate the random range for the RandomRange procedure to be (MAX - MIN + 1)
+	mov		ebx, MAX_ARRAY_NUM
+	sub		ebx, MIN_ARRAY_NUM
+	inc		ebx
+
+	; Create new text file to store the random numbers, CreateOutputFile
+	; modifies the ecx register
+	mov		edx, OFFSET numbersFilename
+	call	CreateOutputFile
+	mov		fileHandle, eax
+
+	; Move the value of the array size parameter to ecx for looping later
+	mov		ecx, [ebp + 8]
+
+	; Begin writing random numbers to the file
+begWritingToFile:
+	
+	; Generate a random number
+	mov		eax, ebx
+	call	RandomRange
+	add		eax, MIN_ARRAY_NUM
+	mov		randomNumber, eax
+
+	; Prepare writing to file
+	push	ebx
+	push	ecx
+
+	; Move address of the local variable thats going to contain
+	; the data to be written to the file to ebx
+	mov		ebx, ebp
+	sub		ebx, 4
+
+	; Write to file
+	mov		eax, fileHandle
+	mov		edx, ebx
+	mov		ecx, 4
+	call	WriteToFile
+
+	; Restore the random range, and loop counter
+	pop		ecx
+	pop		ebx
+
+	; Loop for as many as array size and close the file once done
+	loop	begWritingToFile
+	mov		eax, fileHandle
+	call	CloseFile
+
+	; Clean the stack frame and restore all the registers
+	popad
+	ret		4
+GenerateNumbersToFile ENDP
+
+; Procedure to sort the array recursively using quickSort
+; Recieves: address of DWORD array to fill, array size
+; Returns: array is filled with numbers from the numbers file
+; Preconditions: none
+; Registers changed: none
+ReadNumbersFromFileToArray PROC
+
+	; Setup local variables and save all the registers
+	LOCAL	number:DWORD
+	LOCAL	fileHandle:HANDLE
+	pushad
+
+	; Put address of array to edi
+	mov		edi, [ebp + 12]
+
+	; Create an input file handle to use for reading the file
+	mov		edx, OFFSET numbersFilename
+	call	OpenInputFile
+	mov		fileHandle, eax
+
+	; Move the value of the array size parameter to ecx for looping later
+	mov		ecx, [ebp + 8]
+
+	; Begin reading numbers from the file
+begReadingFromFile:
+
+	; Prepare writing to the file by pushing ecx since ReadFromFile modifies it
+	push	ecx
+
+	; Move the address of the local variable thats going to
+	; contain the number from the file to ebp
+	mov		ebx, ebp
+	sub		ebx, 4
+
+	; Read a number from the file
+	mov		eax, fileHandle
+	mov		edx, ebx
+	mov		ecx, 4
+	call	ReadFromFile
+
+	; Move the number from the file to the array, and increment the array
+	; address to the next element
+	mov		eax, [ebx]
+	mov		[edi], eax
+	add		edi, 4
+
+	; Restore the loop counter
+	pop		ecx
+
+	; Loop reading the file and close the file when done
+	loop	begReadingFromFile
+	mov		eax, fileHandle
+	call	CloseFile
+
+	; Clean the stack and restore all the registers
+	popad
+	ret	8
+ReadNumbersFromFileToArray ENDP
 
 ; Procedure to sort the array recursively using quickSort
 ; Recieves: address of DWORD array to fill, array size

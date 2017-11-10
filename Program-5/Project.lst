@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/09/17 15:00:00
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/10/17 14:50:41
 9Sorting Random Integers     (sorting-random-integers.asm    Page 1 - 1
 
 
@@ -101,7 +101,56 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/09/17 15:00:00
 											"This program generates random numbers in the range [100 .. 999],", 10, 13,
 											"displays the original list, sorts the list, and calculates the", 10, 13,
 											"median value. Finally, it displays the list sorted in descending order.", 10, 13, 10, 13, 0
- 00000103 48 6F 77 20 6D	arraySizePrompt		BYTE	"How many numbers should be generated? [10 .. 200]: ", 0
+ 00000103 2A 2A 45 43 3A	extraCreditMsg		BYTE	"**EC: Numbers are displayed ordered by column", 10, 13,
+	   20 4E 75 6D 62
+	   65 72 73 20 61
+	   72 65 20 64 69
+	   73 70 6C 61 79
+	   65 64 20 6F 72
+	   64 65 72 65 64
+	   20 62 79 20 63
+	   6F 6C 75 6D 6E
+	   0A 0D 2A 2A 45
+	   43 3A 20 51 75
+	   69 63 6B 20 53
+	   6F 72 74 20 69
+	   73 20 75 73 65
+	   64 20 74 6F 20
+	   73 6F 72 74 20
+	   74 68 65 20 6C
+	   69 73 74 0A 0D
+	   2A 2A 45 43 3A
+	   20 46 50 55 20
+	   69 73 20 75 73
+	   65 64 20 66 6F
+	   72 20 63 61 6C
+	   63 75 6C 61 74
+	   69 6E 67 20 61
+	   6E 64 20 72 6F
+	   75 6E 64 69 6E
+	   67 20 74 68 65
+	   20 6D 65 64 69
+	   61 6E 0A 0D 2A
+	   2A 45 43 3A 20
+	   4E 75 6D 62 65
+	   72 73 20 61 72
+	   65 20 67 65 6E
+	   65 72 61 74 65
+	   64 20 69 6E 74
+	   6F 20 61 20 66
+	   69 6C 65 20 61
+	   6E 64 20 74 68
+	   65 6E 20 72 65
+	   61 64 20 66 72
+	   6F 6D 20 74 6F
+	   20 66 69 6C 6C
+	   20 74 68 65 20
+	   6C 69 73 74 0A
+	   0D 0A 0D 00
+											"**EC: Quick Sort is used to sort the list", 10, 13,
+											"**EC: FPU is used for calculating and rounding the median", 10, 13,
+											"**EC: Numbers are generated into a file and then read from to fill the list", 10, 13, 10, 13, 0
+ 000001E8 48 6F 77 20 6D	arraySizePrompt		BYTE	"How many numbers should be generated? [10 .. 200]: ", 0
 	   61 6E 79 20 6E
 	   75 6D 62 65 72
 	   73 20 73 68 6F
@@ -112,28 +161,34 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/09/17 15:00:00
 	   30 20 2E 2E 20
 	   32 30 30 5D 3A
 	   20 00
- 00000137 49 6E 76 61 6C	invalidInputMsg		BYTE	"Invalid input", 10, 13, 0
+ 0000021C 49 6E 76 61 6C	invalidInputMsg		BYTE	"Invalid input", 10, 13, 0
 	   69 64 20 69 6E
 	   70 75 74 0A 0D
 	   00
- 00000147 2E 00			periodChar			BYTE	".", 0
- 00000149 09 00			numberPaddingMsg	BYTE	9, 0
- 0000014B 54 68 65 20 75	unsortedArrayMsg	BYTE	"The unsorted random numbers:", 10, 13, 0
+ 0000022C 2E 00			periodChar			BYTE	".", 0
+ 0000022E 09 00			numberPaddingMsg	BYTE	9, 0
+ 00000230 54 68 65 20 75	unsortedArrayMsg	BYTE	"The unsorted random numbers:", 10, 13, 0
 	   6E 73 6F 72 74
 	   65 64 20 72 61
 	   6E 64 6F 6D 20
 	   6E 75 6D 62 65
 	   72 73 3A 0A 0D
 	   00
- 0000016A 54 68 65 20 73	sortedArrayMsg		BYTE	"The sorted list:", 10, 13, 0
+ 0000024F 54 68 65 20 73	sortedArrayMsg		BYTE	"The sorted list:", 10, 13, 0
 	   6F 72 74 65 64
 	   20 6C 69 73 74
 	   3A 0A 0D 00
- 0000017D 54 68 65 20 6D	medianMsg			BYTE	"The median is ", 0
+ 00000262 54 68 65 20 6D	medianMsg			BYTE	"The median is ", 0
 	   65 64 69 61 6E
 	   20 69 73 20 00
- 0000018C 00000000		arraySize			DWORD	0
- 00000190			array				DWORD	MAX_ARRAY_SIZE DUP(0)
+ 00000271 72 61 6E 64 6F	numbersFilename		BYTE	"random-numbers.txt", 0
+	   6D 2D 6E 75 6D
+	   62 65 72 73 2E
+	   74 78 74 00
+ 00000284 00000000		arraySize			DWORD	0
+ 00000288  000000C8 [		array				DWORD	MAX_ARRAY_SIZE DUP(0)
+	    00000000
+	   ]
 
  00000000			.code
 
@@ -146,35 +201,35 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/09/17 15:00:00
  00000005  E8 0000006B			call	Introduction
 
 					; Get the amount numbers to sort from the user
- 0000000A  68 0000018C R		push	OFFSET arraySize
- 0000000F  E8 0000006E			call	GetData
+ 0000000A  68 00000284 R		push	OFFSET arraySize
+ 0000000F  E8 00000078			call	GetData
 
 					; Generate amount of numbers specified by user randomly
- 00000014  68 00000190 R		push	OFFSET array
- 00000019  FF 35 0000018C R		push	arraySize
- 0000001F  E8 0000009A			call	FillArray
+ 00000014  68 00000288 R		push	OFFSET array
+ 00000019  FF 35 00000284 R		push	arraySize
+ 0000001F  E8 000000A4			call	FillArray
 
 					; Display the unsorted array to the user
- 00000024  68 00000190 R		push	OFFSET array
- 00000029  FF 35 0000018C R		push	arraySize
- 0000002F  68 0000014B R		push	OFFSET unsortedArrayMsg
- 00000034  E8 000001E7			call	DisplayList
+ 00000024  68 00000288 R		push	OFFSET array
+ 00000029  FF 35 00000284 R		push	arraySize
+ 0000002F  68 00000230 R		push	OFFSET unsortedArrayMsg
+ 00000034  E8 0000027E			call	DisplayList
 
 					; Sort the array
- 00000039  68 00000190 R		push	OFFSET array
- 0000003E  FF 35 0000018C R		push	arraySize
- 00000044  E8 0000009E			call	SortList
+ 00000039  68 00000288 R		push	OFFSET array
+ 0000003E  FF 35 00000284 R		push	arraySize
+ 00000044  E8 00000135			call	SortList
 
 					; Display the median of the array
- 00000049  68 00000190 R		push	OFFSET array
- 0000004E  FF 35 0000018C R		push	arraySize
- 00000054  E8 00000168			call	DisplayMedian
+ 00000049  68 00000288 R		push	OFFSET array
+ 0000004E  FF 35 00000284 R		push	arraySize
+ 00000054  E8 000001FF			call	DisplayMedian
 
 					; Display the sorted array to the user
- 00000059  68 00000190 R		push	OFFSET array
- 0000005E  FF 35 0000018C R		push	arraySize
- 00000064  68 0000016A R		push	OFFSET sortedArrayMsg
- 00000069  E8 000001B2			call	DisplayList
+ 00000059  68 00000288 R		push	OFFSET array
+ 0000005E  FF 35 00000284 R		push	arraySize
+ 00000064  68 0000024F R		push	OFFSET sortedArrayMsg
+ 00000069  E8 00000249			call	DisplayList
 
 					exit	; exit to operating system
  0000006E  6A 00	   *	    push   +000000000h
@@ -187,162 +242,295 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/09/17 15:00:00
 				; Preconditions: none
 				; Registers changed: none
  00000075			Introduction PROC
+
+					; Save all the registers
  00000075  60				pushad
+
+					; Display the intro message
  00000076  BA 00000000 R		mov		edx, OFFSET introMsg
  0000007B  E8 00000000 E		call	WriteString
- 00000080  61				popad
- 00000081  C3				ret
- 00000082			Introduction ENDP
+
+					; Display the extra credit message
+ 00000080  BA 00000103 R		mov		edx, OFFSET extraCreditMsg
+ 00000085  E8 00000000 E		call	WriteString
+
+					; Restore all the registers
+ 0000008A  61				popad
+ 0000008B  C3				ret
+ 0000008C			Introduction ENDP
 
 				; Procedure to get the amount of numbers the user wants to be sorted
 				; Recieves: address of variable to hold user input
 				; Returns: variable passed in contains a valid array size
 				; Preconditions: none
 				; Registers changed: none
- 00000082			GetData PROC
+ 0000008C			GetData PROC
 
 					; Setup the stack frame and save all the registers
- 00000082  55				push	ebp
- 00000083  8B EC			mov		ebp, esp
- 00000085  60				pushad
+ 0000008C  55				push	ebp
+ 0000008D  8B EC			mov		ebp, esp
+ 0000008F  60				pushad
 
 					; Move the address of the array size parameter into edi
- 00000086  8B 7D 08			mov		edi, [ebp + 8]
+ 00000090  8B 7D 08			mov		edi, [ebp + 8]
 
 					; Prompt the user for the amount of numbers to sort
- 00000089			begUserInput:
- 00000089  BA 00000103 R		mov		edx, OFFSET arraySizePrompt
- 0000008E  E8 00000000 E		call	WriteString
- 00000093  E8 00000000 E		call	ReadInt
+ 00000093			begUserInput:
+ 00000093  BA 000001E8 R		mov		edx, OFFSET arraySizePrompt
+ 00000098  E8 00000000 E		call	WriteString
+ 0000009D  E8 00000000 E		call	ReadInt
 
 					; Check that the input from the user is within the MIN and MAX for array size
- 00000098  83 F8 0A			cmp		eax, MIN_ARRAY_SIZE
- 0000009B  7C 09			jl		invalidInput
- 0000009D  3D 000000C8			cmp		eax, MAX_ARRAY_SIZE
- 000000A2  7F 02			jg		invalidInput
- 000000A4  EB 0C			jmp		endUserInput
+ 000000A2  83 F8 0A			cmp		eax, MIN_ARRAY_SIZE
+ 000000A5  7C 09			jl		invalidInput
+ 000000A7  3D 000000C8			cmp		eax, MAX_ARRAY_SIZE
+ 000000AC  7F 02			jg		invalidInput
+ 000000AE  EB 0C			jmp		endUserInput
 
 					; Display user input invalid message and go to asking for user input again
- 000000A6			invalidInput:
- 000000A6  BA 00000137 R		mov		edx, OFFSET invalidInputMsg
- 000000AB  E8 00000000 E		call	WriteString
- 000000B0  EB D7			jmp		begUserInput
+ 000000B0			invalidInput:
+ 000000B0  BA 0000021C R		mov		edx, OFFSET invalidInputMsg
+ 000000B5  E8 00000000 E		call	WriteString
+ 000000BA  EB D7			jmp		begUserInput
 
 					; Valid input was given by th user, update the value in the parameter
- 000000B2			endUserInput:
- 000000B2  89 07			mov		[edi], eax
- 000000B4  E8 00000000 E		call	CrLf
+ 000000BC			endUserInput:
+ 000000BC  89 07			mov		[edi], eax
+ 000000BE  E8 00000000 E		call	CrLf
 
 					; Clean up the stack frame restore all the registers
- 000000B9  61				popad
- 000000BA  5D				pop		ebp
- 000000BB  C2 0004			ret		4
- 000000BE			GetData ENDP
+ 000000C3  61				popad
+ 000000C4  5D				pop		ebp
+ 000000C5  C2 0004			ret		4
+ 000000C8			GetData ENDP
 
 				; Procedure to generate an array with the amount of numbers the user entered
 				; Recieves: address of DWORD array to fill, array size
 				; Returns: array of length size filled with random numbers
 				; Preconditions: none
 				; Registers changed: none
- 000000BEFillArray PROC
+ 000000C8			FillArray PROC
 					
 					; Setup the stack frame and save all the registers
- 000000BE  55				push	ebp
- 000000BF  8B EC			mov		ebp, esp
- 000000C1  60				pushad
+ 000000C8  55				push	ebp
+ 000000C9  8B EC			mov		ebp, esp
+ 000000CB  60				pushad
 
 					; Move the address of the array parameter to edi
- 000000C2  8B 7D 0C			mov		edi, [ebp + 12]
+ 000000CC  8B 7D 0C			mov		edi, [ebp + 12]
 					
 					; Move the value of the array size parameter to ecx for looping later
- 000000C5  8B 4D 08			mov		ecx, [ebp + 8]
+ 000000CF  8B 4D 08			mov		ecx, [ebp + 8]
 					
-					; Calculate the random range for the RandomRange procedure to be (MAX - MIN + 1)
- 000000C8  BB 000003E7			mov		ebx, MAX_ARRAY_NUM
- 000000CD  83 EB 64			sub		ebx, MIN_ARRAY_NUM
- 000000D0  43				inc		ebx
+					; Push the size of the array and generate random numbers to the numbers file
+ 000000D2  51				push	ecx
+ 000000D3  E8 0000000C			call	GenerateNumbersToFile
 
-					; Fill the array with random numbers
- 000000D1			begFill:
-					; Set eax to the random range and generate random number into eax
- 000000D1  8B C3			mov		eax, ebx
- 000000D3  E8 00000000 E		call	RandomRange
- 000000D8  83 C0 64			add		eax, MIN_ARRAY_NUM
-
-					; Set current element in array to the random number
- 000000DB  89 07			mov		[edi], eax
-
-					; Move to next element in the array and repeat
- 000000DD  83 C7 04			add		edi, 4
- 000000E0  E2 EF			loop	begFill
+					; Push the address of the array and the size of the array and read
+					; numbers from the numbers file
+ 000000D8  57				push	edi
+ 000000D9  51				push	ecx
+ 000000DA  E8 00000059			call	ReadNumbersFromFileToArray
 
 					; Clean the stack frame and restore all the registers
- 000000E2  61				popad
- 000000E3  5D				pop		ebp
- 000000E4  C2 0008			ret		8
- 000000E7			FillArray ENDP
+ 000000DF  61				popad
+ 000000E0  5D				pop		ebp
+ 000000E1  C2 0008			ret		8
+ 000000E4			FillArray ENDP
+
+				; Procedure to generate random numbers to a file
+				; Recieves: array size
+				; Returns: none
+				; Preconditions: none
+				; Registers changed: none
+ 000000E4			GenerateNumbersToFile PROC
+
+					; Setup local variables and save all the registers
+					LOCAL	randomNumber:DWORD
+					LOCAL	fileHandle:HANDLE
+ 000000E4  55		   *	    push   ebp
+ 000000E5  8B EC	   *	    mov    ebp, esp
+ 000000E7  83 C4 F8	   *	    add    esp, 0FFFFFFF8h
+ 000000EA  60				pushad
+
+					; Calculate the random range for the RandomRange procedure to be (MAX - MIN + 1)
+ 000000EB  BB 000003E7			mov		ebx, MAX_ARRAY_NUM
+ 000000F0  83 EB 64			sub		ebx, MIN_ARRAY_NUM
+ 000000F3  43				inc		ebx
+
+					; Create new text file to store the random numbers, CreateOutputFile
+					; modifies the ecx register
+ 000000F4  BA 00000271 R		mov		edx, OFFSET numbersFilename
+ 000000F9  E8 00000000 E		call	CreateOutputFile
+ 000000FE  89 45 F8			mov		fileHandle, eax
+
+					; Move the value of the array size parameter to ecx for looping later
+ 00000101  8B 4D 08			mov		ecx, [ebp + 8]
+
+					; Begin writing random numbers to the file
+ 00000104			begWritingToFile:
+					
+					; Generate a random number
+ 00000104  8B C3			mov		eax, ebx
+ 00000106  E8 00000000 E		call	RandomRange
+ 0000010B  83 C0 64			add		eax, MIN_ARRAY_NUM
+ 0000010E  89 45 FC			mov		randomNumber, eax
+
+					; Prepare writing to file
+ 00000111  53				push	ebx
+ 00000112  51				push	ecx
+
+					; Move address of the local variable thats going to contain
+					; the data to be written to the file to ebx
+ 00000113  8B DD			mov		ebx, ebp
+ 00000115  83 EB 04			sub		ebx, 4
+
+					; Write to file
+ 00000118  8B 45 F8			mov		eax, fileHandle
+ 0000011B  8B D3			mov		edx, ebx
+ 0000011D  B9 00000004			mov		ecx, 4
+ 00000122  E8 00000000 E		call	WriteToFile
+
+					; Restore the random range, and loop counter
+ 00000127  59				pop		ecx
+ 00000128  5B				pop		ebx
+
+					; Loop for as many as array size and close the file once done
+ 00000129  E2 D9			loop	begWritingToFile
+ 0000012B  8B 45 F8			mov		eax, fileHandle
+ 0000012E  E8 00000000 E		call	CloseFile
+
+					; Clean the stack frame and restore all the registers
+ 00000133  61				popad
+ 00000134  C9		   *	    leave  
+ 00000135  C2 0004			ret		4
+ 00000138			GenerateNumbersToFile ENDP
+
+				; Procedure to sort the array recursively using quickSort
+				; Recieves: address of DWORD array to fill, array size
+				; Returns: array is filled with numbers from the numbers file
+				; Preconditions: none
+				; Registers changed: none
+ 00000138			ReadNumbersFromFileToArray PROC
+
+					; Setup local variables and save all the registers
+					LOCAL	number:DWORD
+					LOCAL	fileHandle:HANDLE
+ 00000138  55		   *	    push   ebp
+ 00000139  8B EC	   *	    mov    ebp, esp
+ 0000013B  83 C4 F8	   *	    add    esp, 0FFFFFFF8h
+ 0000013E  60				pushad
+
+					; Put address of array to edi
+ 0000013F  8B 7D 0C			mov		edi, [ebp + 12]
+
+					; Create an input file handle to use for reading the file
+ 00000142  BA 00000271 R		mov		edx, OFFSET numbersFilename
+ 00000147  E8 00000000 E		call	OpenInputFile
+ 0000014C  89 45 F8			mov		fileHandle, eax
+
+					; Move the value of the array size parameter to ecx for looping later
+ 0000014F  8B 4D 08			mov		ecx, [ebp + 8]
+
+					; Begin reading numbers from the file
+ 00000152			begReadingFromFile:
+
+					; Prepare writing to the file by pushing ecx since ReadFromFile modifies it
+ 00000152  51				push	ecx
+
+					; Move the address of the local variable thats going to
+					; contain the number from the file to ebp
+ 00000153  8B DD			mov		ebx, ebp
+ 00000155  83 EB 04			sub		ebx, 4
+
+					; Read a number from the file
+ 00000158  8B 45 F8			mov		eax, fileHandle
+ 0000015B  8B D3			mov		edx, ebx
+ 0000015D  B9 00000004			mov		ecx, 4
+ 00000162  E8 00000000 E		call	ReadFromFile
+
+					; Move the number from the file to the array, and increment the array
+					; address to the next element
+ 00000167  8B 03			mov		eax, [ebx]
+ 00000169  89 07			mov		[edi], eax
+ 0000016B  83 C7 04			add		edi, 4
+
+					; Restore the loop counter
+ 0000016E  59				pop		ecx
+
+					; Loop reading the file and close the file when done
+ 0000016F  E2 E1			loop	begReadingFromFile
+ 00000171  8B 45 F8			mov		eax, fileHandle
+ 00000174  E8 00000000 E		call	CloseFile
+
+					; Clean the stack and restore all the registers
+ 00000179  61				popad
+ 0000017A  C9		   *	    leave  
+ 0000017B  C2 0008			ret	8
+ 0000017E			ReadNumbersFromFileToArray ENDP
+sorting-random-integers.asm(314) : warning A6004:procedure argument or local not referenced : number
 
 				; Procedure to sort the array recursively using quickSort
 				; Recieves: address of DWORD array to fill, array size
 				; Returns: none
 				; Preconditions: none
 				; Registers changed: none
- 000000E7			SortList PROC
+ 0000017E			SortList PROC
 
 					; Setup the stack frame and save all registers
- 000000E7  55				push	ebp
- 000000E8  8B EC			mov		ebp, esp
- 000000EA  60				pushad
+ 0000017E  55				push	ebp
+ 0000017F  8B EC			mov		ebp, esp
+ 00000181  60				pushad
 
 					; Call the QuickSort procedure with the address of the array and the
 					; start index, and end index. Start/End index are 0 based, thus why we're
 					; subtracting 1 from the array size
- 000000EB  8B 45 08			mov		eax, [ebp + 8]
- 000000EE  48				dec		eax
+ 00000182  8B 45 08			mov		eax, [ebp + 8]
+ 00000185  48				dec		eax
 
- 000000EF  FF 75 0C			push	[ebp + 12]
- 000000F2  6A 00			push	0
- 000000F4  50				push	eax
- 000000F5  E8 0000006D			call	QuickSort
+ 00000186  FF 75 0C			push	[ebp + 12]
+ 00000189  6A 00			push	0
+ 0000018B  50				push	eax
+ 0000018C  E8 0000006D			call	QuickSort
 
 					; Clean the stack frame and restore all the registers
- 000000FA  61				popad
- 000000FB  5D				pop		ebp
- 000000FC  C2 0008			ret		8
- 000000FF			SortList ENDP
+ 00000191  61				popad
+ 00000192  5D				pop		ebp
+ 00000193  C2 0008			ret		8
+ 00000196			SortList ENDP
 
 				; Procedure to swap two elements in a DWORD array
 				; Recieves: address of DWORD array to fill, index A, index B
 				; Returns: the elements in the array are swapped
 				; Preconditions: start/end index are within the bounds of the array
 				; Registers changed: none
- 000000FF			SwapArrayElements PROC
+ 00000196			SwapArrayElements PROC
 					
 					; Setup the stack fram and save all the registers
- 000000FF  55				push	ebp
- 00000100  8B EC			mov		ebp, esp
- 00000102  60				pushad
+ 00000196  55				push	ebp
+ 00000197  8B EC			mov		ebp, esp
+ 00000199  60				pushad
 
 					; Set the address of the array to edi
- 00000103  8B 7D 10			mov		edi, [ebp + 16]
+ 0000019A  8B 7D 10			mov		edi, [ebp + 16]
 					
 					; Move the index parameters to registers for indexing the array
- 00000106  8B 4D 0C			mov		ecx, [ebp + 12]
- 00000109  8B 55 08			mov		edx, [ebp + 8]
+ 0000019D  8B 4D 0C			mov		ecx, [ebp + 12]
+ 000001A0  8B 55 08			mov		edx, [ebp + 8]
 
 					; Move the values of the array into registers
- 0000010C  8B 04 8F			mov		eax, [edi + ecx * 4]
- 0000010F  8B 1C 97			mov		ebx, [edi + edx * 4]
+ 000001A3  8B 04 8F			mov		eax, [edi + ecx * 4]
+ 000001A6  8B 1C 97			mov		ebx, [edi + edx * 4]
 
 					; Swap the elements of the array
- 00000112  89 1C 8F			mov		[edi + ecx * 4], ebx
- 00000115  89 04 97			mov		[edi + edx * 4], eax
+ 000001A9  89 1C 8F			mov		[edi + ecx * 4], ebx
+ 000001AC  89 04 97			mov		[edi + edx * 4], eax
 
 					; Clean the stack frame and restore all the registers
- 00000118  61				popad
- 00000119  5D				pop		ebp
- 0000011A  C2 000C			ret		12
- 0000011D			SwapArrayElements ENDP
+ 000001AF  61				popad
+ 000001B0  5D				pop		ebp
+ 000001B1  C2 000C			ret		12
+ 000001B4			SwapArrayElements ENDP
 
 				; Procedure put the pivot point, the last element, in the correct position
 				;	relative to the other elements, i.e. all elements greater
@@ -353,204 +541,204 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/09/17 15:00:00
 				; Returns: the index of the pivot
 				; Preconditions: none
 				; Registers changed: none
- 0000011D			Partition PROC
+ 000001B4			Partition PROC
 					
 					; Setup local variables and save all the registers
 					LOCAL	pivot:DWORD
 					LOCAL	pivotIndex:DWORD
- 0000011D  55		   *	    push   ebp
- 0000011E  8B EC	   *	    mov    ebp, esp
- 00000120  83 C4 F8	   *	    add    esp, 0FFFFFFF8h
- 00000123  60				pushad
+ 000001B4  55		   *	    push   ebp
+ 000001B5  8B EC	   *	    mov    ebp, esp
+ 000001B7  83 C4 F8	   *	    add    esp, 0FFFFFFF8h
+ 000001BA  60				pushad
 
 					; Store the address of the array to be sorted into esi
- 00000124  8B 75 14			mov		esi, [ebp + 20]
+ 000001BB  8B 75 14			mov		esi, [ebp + 20]
 
 					; Use the ecx as the index counter, set it to starting index parameter
- 00000127  8B 4D 10			mov		ecx, [ebp + 16]
+ 000001BE  8B 4D 10			mov		ecx, [ebp + 16]
 
 					; Use edx as the end index
- 0000012A  8B 55 0C			mov		edx, [ebp + 12]
+ 000001C1  8B 55 0C			mov		edx, [ebp + 12]
 
 					; Set the pivot to first element in array, pivot index to start index
- 0000012D  8B 04 96			mov		eax, [esi + edx * 4]
- 00000130  89 45 FC			mov		pivot, eax
- 00000133  89 4D F8			mov		pivotIndex, ecx
+ 000001C4  8B 04 96			mov		eax, [esi + edx * 4]
+ 000001C7  89 45 FC			mov		pivot, eax
+ 000001CA  89 4D F8			mov		pivotIndex, ecx
 
 					; Loop over each element, for elements greater than or equal to the pivot
 					; swap the element and the pivot index, increment the pivot index
- 00000136			begLoop:
+ 000001CD			begLoop:
 					; Check if the current element is greater than or equal to the pivot
 					; if so, swap the elements
- 00000136  8B 04 8E			mov		eax, [esi + ecx * 4]
- 00000139  3B 45 FC			cmp		eax, pivot
- 0000013C  7C 0D			jl		endSwap
+ 000001CD  8B 04 8E			mov		eax, [esi + ecx * 4]
+ 000001D0  3B 45 FC			cmp		eax, pivot
+ 000001D3  7C 0D			jl		endSwap
 
 					; Swap the pivot index and current elem
- 0000013E  56				push	esi			; address of the array
- 0000013F  51				push	ecx			; current index
- 00000140  FF 75 F8			push	pivotIndex	; pivot index
- 00000143  E8 FFFFFFB7			call	SwapArrayElements
+ 000001D5  56				push	esi			; address of the array
+ 000001D6  51				push	ecx			; current index
+ 000001D7  FF 75 F8			push	pivotIndex	; pivot index
+ 000001DA  E8 FFFFFFB7			call	SwapArrayElements
 					
- 00000148  FF 45 F8			inc		pivotIndex
- 0000014B			endSwap:
- 0000014B  41				inc		ecx
- 0000014C  3B CA			cmp		ecx, edx
- 0000014E  7C E6			jl		begLoop
+ 000001DF  FF 45 F8			inc		pivotIndex
+ 000001E2			endSwap:
+ 000001E2  41				inc		ecx
+ 000001E3  3B CA			cmp		ecx, edx
+ 000001E5  7C E6			jl		begLoop
 
 					; Swap the pivot with the pivot index
- 00000150  56				push	esi
- 00000151  FF 75 F8			push	pivotIndex
- 00000154  52				push	edx
- 00000155  E8 FFFFFFA5			call	SwapArrayElements
+ 000001E7  56				push	esi
+ 000001E8  FF 75 F8			push	pivotIndex
+ 000001EB  52				push	edx
+ 000001EC  E8 FFFFFFA5			call	SwapArrayElements
 
 					; Set the pivot index to the address of variable passed in
- 0000015A  8B 7D 08			mov		edi, [ebp + 8]
- 0000015D  8B 45 F8			mov		eax, pivotIndex
- 00000160  89 07			mov		[edi], eax
+ 000001F1  8B 7D 08			mov		edi, [ebp + 8]
+ 000001F4  8B 45 F8			mov		eax, pivotIndex
+ 000001F7  89 07			mov		[edi], eax
 					
 					; Clean the stack frame and restore all the registers
- 00000162  61				popad
- 00000163  C9		   *	    leave  
- 00000164  C2 0010			ret		16
- 00000167			Partition ENDP
+ 000001F9  61				popad
+ 000001FA  C9		   *	    leave  
+ 000001FB  C2 0010			ret		16
+ 000001FE			Partition ENDP
 
 				; Procedure to sort the array recursively using quickSort
 				; Recieves: address of DWORD array to fill, start index, end index
 				; Returns: array is sorted in descending order
 				; Preconditions: none
 				; Registers changed: none
- 00000167			QuickSort PROC
+ 000001FE			QuickSort PROC
 
 					; Setup local variables and save all the registers
 					LOCAL	arrayAddress:DWORD
 					LOCAL	lo:DWORD
 					LOCAL	hi:DWORD
 					LOCAL	pi:DWORD
- 00000167  55		   *	    push   ebp
- 00000168  8B EC	   *	    mov    ebp, esp
- 0000016A  83 C4 F0	   *	    add    esp, 0FFFFFFF0h
- 0000016D  60				pushad
+ 000001FE  55		   *	    push   ebp
+ 000001FF  8B EC	   *	    mov    ebp, esp
+ 00000201  83 C4 F0	   *	    add    esp, 0FFFFFFF0h
+ 00000204  60				pushad
 
 					; Initialize the local variables to passed in parameters
- 0000016E  8B 45 10			mov		eax, [ebp + 16]
- 00000171  89 45 FC			mov		arrayAddress, eax
+ 00000205  8B 45 10			mov		eax, [ebp + 16]
+ 00000208  89 45 FC			mov		arrayAddress, eax
 
- 00000174  8B 45 0C			mov		eax, [ebp + 12]
- 00000177  89 45 F8			mov		lo, eax
+ 0000020B  8B 45 0C			mov		eax, [ebp + 12]
+ 0000020E  89 45 F8			mov		lo, eax
 
- 0000017A  8B 45 08			mov		eax, [ebp + 8]
- 0000017D  89 45 F4			mov		hi, eax
+ 00000211  8B 45 08			mov		eax, [ebp + 8]
+ 00000214  89 45 F4			mov		hi, eax
 
 					; Only recursively call quickSort if lo < hi
- 00000180  8B 45 F8			mov		eax, lo
- 00000183  3B 45 F4			cmp		eax, hi
- 00000186  7D 34			jge		endSort
+ 00000217  8B 45 F8			mov		eax, lo
+ 0000021A  3B 45 F4			cmp		eax, hi
+ 0000021D  7D 34			jge		endSort
 
 					; Get the address of the pi local variable
- 00000188  8B C5			mov		eax, ebp
- 0000018A  83 E8 10			sub		eax, 16
+ 0000021F  8B C5			mov		eax, ebp
+ 00000221  83 E8 10			sub		eax, 16
 
- 0000018D  FF 75 FC			push	arrayAddress
- 00000190  FF 75 F8			push	lo
- 00000193  FF 75 F4			push	hi
- 00000196  50				push	eax
- 00000197  E8 FFFFFF81			call	Partition
+ 00000224  FF 75 FC			push	arrayAddress
+ 00000227  FF 75 F8			push	lo
+ 0000022A  FF 75 F4			push	hi
+ 0000022D  50				push	eax
+ 0000022E  E8 FFFFFF81			call	Partition
 
 					; Call quickSort with lo and pi - 1
- 0000019C  8B 45 F0			mov		eax, pi
- 0000019F  48				dec		eax
+ 00000233  8B 45 F0			mov		eax, pi
+ 00000236  48				dec		eax
 
- 000001A0  FF 75 FC			push	arrayAddress
- 000001A3  FF 75 F8			push	lo
- 000001A6  50				push	eax
- 000001A7  E8 FFFFFFBB			call	QuickSort
+ 00000237  FF 75 FC			push	arrayAddress
+ 0000023A  FF 75 F8			push	lo
+ 0000023D  50				push	eax
+ 0000023E  E8 FFFFFFBB			call	QuickSort
 
 					; Call quickSort with pi + 1 and hi
- 000001AC  8B 45 F0			mov		eax, pi
- 000001AF  40				inc		eax
+ 00000243  8B 45 F0			mov		eax, pi
+ 00000246  40				inc		eax
 
- 000001B0  FF 75 FC			push	arrayAddress
- 000001B3  50				push	eax
- 000001B4  FF 75 F4			push	hi
- 000001B7  E8 FFFFFFAB			call	QuickSort
+ 00000247  FF 75 FC			push	arrayAddress
+ 0000024A  50				push	eax
+ 0000024B  FF 75 F4			push	hi
+ 0000024E  E8 FFFFFFAB			call	QuickSort
 
- 000001BC			endSort:
+ 00000253			endSort:
 					; Clean the stack frame and restore all the registers
- 000001BC  61				popad
- 000001BD  C9		   *	    leave  
- 000001BE  C2 000C			ret		12
- 000001C1			QuickSort ENDP
+ 00000253  61				popad
+ 00000254  C9		   *	    leave  
+ 00000255  C2 000C			ret		12
+ 00000258			QuickSort ENDP
 
 				; Procedure to display the median of the array
 				; Recieves: address of DWORD array to fill, array size
 				; Returns: none
 				; Preconditions: the array is sorted in descending order
 				; Registers changed: none
- 000001C1			DisplayMedian PROC
+ 00000258			DisplayMedian PROC
 
 					; Setup local variables and save all the registers
 					LOCAL	median:DWORD
 					LOCAL	divisor:REAL4
- 000001C1  55		   *	    push   ebp
- 000001C2  8B EC	   *	    mov    ebp, esp
- 000001C4  83 C4 F8	   *	    add    esp, 0FFFFFFF8h
- 000001C7  60				pushad
+ 00000258  55		   *	    push   ebp
+ 00000259  8B EC	   *	    mov    ebp, esp
+ 0000025B  83 C4 F8	   *	    add    esp, 0FFFFFFF8h
+ 0000025E  60				pushad
 
 					; Move the address of the array to esi
- 000001C8  8B 75 0C			mov		esi, [ebp + 12]
+ 0000025F  8B 75 0C			mov		esi, [ebp + 12]
 
 					; Display the median message
- 000001CB  BA 0000017D R		mov		edx, OFFSET medianMsg
- 000001D0  E8 00000000 E		call	WriteString
+ 00000262  BA 00000262 R		mov		edx, OFFSET medianMsg
+ 00000267  E8 00000000 E		call	WriteString
 
 					; Move 2 into divisor so we can use it to divide the FPU
- 000001D5  C7 45 F8			mov		divisor, 2
+ 0000026C  C7 45 F8			mov		divisor, 2
 	   00000002
 
 					; Calculate the middle index of the array where the median will be
- 000001DC  8B 45 08			mov		eax, [ebp + 8]		; Move array size to eax for division
- 000001DF  BB 00000002			mov		ebx, 2
- 000001E4  99				cdq
- 000001E5  F7 F3			div		ebx
- 000001E7  8B C8			mov		ecx, eax			; Move median index to ecx
+ 00000273  8B 45 08			mov		eax, [ebp + 8]		; Move array size to eax for division
+ 00000276  BB 00000002			mov		ebx, 2
+ 0000027B  99				cdq
+ 0000027C  F7 F3			div		ebx
+ 0000027E  8B C8			mov		ecx, eax			; Move median index to ecx
 
 					; Push value in array to the FPU stack
- 000001E9  DB 04 8E			FILD	DWORD PTR [esi + ecx * 4]
+ 00000280  DB 04 8E			FILD	DWORD PTR [esi + ecx * 4]
 
 					; If there is a remainder of 0, it means that the array has an even number of
 					; elements, so we need to add the 2 middle elements and average them, rounded to nearest
 					; integer to get the median
- 000001EC  83 FA 00			cmp		edx, 0
- 000001EF  75 0B			jne		showMedian
+ 00000283  83 FA 00			cmp		edx, 0
+ 00000286  75 0B			jne		showMedian
 
 					; Descrement ecx to the previous index in the array and push the value to the FPU stack
- 000001F1  49				dec		ecx
- 000001F2  DB 04 8E			FILD	DWORD PTR [esi + ecx * 4]
+ 00000288  49				dec		ecx
+ 00000289  DB 04 8E			FILD	DWORD PTR [esi + ecx * 4]
 
 					; Add the two values in the FPU stack together and divide them by 2 to get the average
- 000001F5  DE C1			FADD
- 000001F7  DB 45 F8			FILD	divisor
- 000001FA  DE F9			FDIV
+ 0000028C  DE C1			FADD
+ 0000028E  DB 45 F8			FILD	divisor
+ 00000291  DE F9			FDIV
 
 					; Display the median
- 000001FC			showMedian:
+ 00000293			showMedian:
 					; Round the median in the FPU stack to nearest integer and store it into median
- 000001FC  DB 55 FC			FIST	median
+ 00000293  DB 55 FC			FIST	median
 
 					; Display the median
- 000001FF  8B 45 FC			mov		eax, median
- 00000202  E8 00000000 E		call	WriteDec
- 00000207  BA 00000147 R		mov		edx, OFFSET periodChar
- 0000020C  E8 00000000 E		call	WriteString
- 00000211  E8 00000000 E		call	CrLf
- 00000216  E8 00000000 E		call	CrLf
+ 00000296  8B 45 FC			mov		eax, median
+ 00000299  E8 00000000 E		call	WriteDec
+ 0000029E  BA 0000022C R		mov		edx, OFFSET periodChar
+ 000002A3  E8 00000000 E		call	WriteString
+ 000002A8  E8 00000000 E		call	CrLf
+ 000002AD  E8 00000000 E		call	CrLf
 
 					; Clean the stack frame and restore all the registers
- 0000021B  61				popad
- 0000021C  C9		   *	    leave  
- 0000021D  C2 0008			ret		8
- 00000220			DisplayMedian ENDP
+ 000002B2  61				popad
+ 000002B3  C9		   *	    leave  
+ 000002B4  C2 0008			ret		8
+ 000002B7			DisplayMedian ENDP
 
 				; Displays the array
 				; Procedure to display a message and an array
@@ -558,7 +746,7 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/09/17 15:00:00
 				; Returns: none
 				; Preconditions: none
 				; Registers changed: none
- 00000220			DisplayList PROC
+ 000002B7			DisplayList PROC
 
 					; The idea behind printing the list in column order is to split the output
 					; window into two sections. The first section will be N cols x M rows where N is the remainder
@@ -587,131 +775,131 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/09/17 15:00:00
 					LOCAL	colNum:DWORD
 					LOCAL	bytesPerElem:DWORD
 					LOCAL	arrayAddress:DWORD
- 00000220  55		   *	    push   ebp
- 00000221  8B EC	   *	    mov    ebp, esp
- 00000223  83 C4 E0	   *	    add    esp, 0FFFFFFE0h
- 00000226  60				pushad
+ 000002B7  55		   *	    push   ebp
+ 000002B8  8B EC	   *	    mov    ebp, esp
+ 000002BA  83 C4 E0	   *	    add    esp, 0FFFFFFE0h
+ 000002BD  60				pushad
 
 					; Bytes each element of DWORD array takes up
- 00000227  C7 45 E4			mov		bytesPerElem, 4
+ 000002BE  C7 45 E4			mov		bytesPerElem, 4
 	   00000004
 
 					; Move the address of the array paremeter to arrayAddress
- 0000022E  8B 75 10			mov		esi, [ebp + 16]
- 00000231  89 75 E0			mov		arrayAddress, esi
+ 000002C5  8B 75 10			mov		esi, [ebp + 16]
+ 000002C8  89 75 E0			mov		arrayAddress, esi
 
 					; Move the value of the array size paremeter to ecx for looping
- 00000234  8B 4D 0C			mov		ecx, [ebp + 12]
+ 000002CB  8B 4D 0C			mov		ecx, [ebp + 12]
 
 					; Display the message that was passed in
- 00000237  8B 55 08			mov		edx, [ebp + 8]
- 0000023A  E8 00000000 E		call	WriteString
+ 000002CE  8B 55 08			mov		edx, [ebp + 8]
+ 000002D1  E8 00000000 E		call	WriteString
 
 					; Calculate the amount rows of numbers that'll be printed for section 1 and 2
- 0000023F  BB 0000000A			mov		ebx, NUM_PER_LINE
- 00000244  8B C1			mov		eax, ecx			; ecx contains the size of the array
- 00000246  99				cdq
- 00000247  F7 F3			div		ebx
- 00000249  89 45 F0			mov		sec2Rows, eax
+ 000002D6  BB 0000000A			mov		ebx, NUM_PER_LINE
+ 000002DB  8B C1			mov		eax, ecx			; ecx contains the size of the array
+ 000002DD  99				cdq
+ 000002DE  F7 F3			div		ebx
+ 000002E0  89 45 F0	mov		sec2Rows, eax
 
 					; Section 1 only exists if all the elements could not be displayed in full rows of
 					; NUM_PER_LINE
- 0000024C  83 FA 00			cmp		edx, 0
- 0000024F  75 17			jne		setupSec1Data
+ 000002E3  83 FA 00			cmp		edx, 0
+ 000002E6  75 17			jne		setupSec1Data
 					
 					; Set sec1 data to 0 since all elements could be displayed in full rows of NUM_PER_LINE
- 00000251  C7 45 F4			mov		sec1ElemCount, 0
+ 000002E8  C7 45 F4			mov		sec1ElemCount, 0
 	   00000000
- 00000258  C7 45 FC			mov		sec1Cols, 0
+ 000002EF  C7 45 FC			mov		sec1Cols, 0
 	   00000000
- 0000025F  C7 45 F8			mov		sec1Rows, 0
+ 000002F6  C7 45 F8			mov		sec1Rows, 0
 	   00000000
- 00000266  EB 16			jmp		endSecDataCalc
+ 000002FD  EB 16			jmp		endSecDataCalc
 
- 00000268			setupSec1Data:
+ 000002FF			setupSec1Data:
 					; Set sec1Rows to sec2Rows + 1, and sec1Cols to the remainder of array size divided by NUM_PER_LINE
- 00000268  8B 45 F0			mov		eax, sec2Rows
- 0000026B  40				inc		eax
- 0000026C  89 45 F8			mov		sec1Rows, eax
- 0000026F  89 55 FC			mov		sec1Cols, edx
+ 000002FF  8B 45 F0			mov		eax, sec2Rows
+ 00000302  40				inc		eax
+ 00000303  89 45 F8			mov		sec1Rows, eax
+ 00000306  89 55 FC			mov		sec1Cols, edx
 
 					; Set the amount of elements in section 1
- 00000272  8B 45 FC			mov		eax, sec1Cols
- 00000275  F7 65 F8			mul		sec1Rows
- 00000278  F7 65 E4			mul		bytesPerElem
- 0000027B  89 45 F4			mov		sec1ElemCount, eax
+ 00000309  8B 45 FC			mov		eax, sec1Cols
+ 0000030C  F7 65 F8			mul		sec1Rows
+ 0000030F  F7 65 E4			mul		bytesPerElem
+ 00000312  89 45 F4			mov		sec1ElemCount, eax
 
- 0000027E			endSecDataCalc:
+ 00000315			endSecDataCalc:
 					; Prepare printing the array by column
- 0000027E  C7 45 EC			mov		rowNum, 0				; will contain the row number we're on starting at 0
+ 00000315  C7 45 EC			mov		rowNum, 0				; will contain the row number we're on starting at 0
 	   00000000
- 00000285  C7 45 E8			mov		colNum, 0				; will contain the col number we're on starting at 0
+ 0000031C  C7 45 E8			mov		colNum, 0				; will contain the col number we're on starting at 0
 	   00000000
 
- 0000028C			begDisplayList:
+ 00000323			begDisplayList:
 					; Print newline if we've displayed the maximum amount of numbers per row
- 0000028C  83 7D E8 0A			cmp		colNum, NUM_PER_LINE
- 00000290  7C 0F			jl		endDisplayNewline
- 00000292  E8 00000000 E		call	CrLf
- 00000297  FF 45 EC			inc		rowNum					; increment row number
- 0000029A  C7 45 E8			mov		colNum, 0				; reset col number
+ 00000323  83 7D E8 0A			cmp		colNum, NUM_PER_LINE
+ 00000327  7C 0F			jl		endDisplayNewline
+ 00000329  E8 00000000 E		call	CrLf
+ 0000032E  FF 45 EC			inc		rowNum					; increment row number
+ 00000331  C7 45 E8			mov		colNum, 0				; reset col number
 	   00000000
 
- 000002A1			endDisplayNewline:
- 000002A1  8B 45 E8			mov		eax, colNum
- 000002A4  3B 45 FC			cmp		eax, sec1Cols
- 000002A7  8B 75 E0			mov		esi, arrayAddress
- 000002AA  7D 10			jge		sec2Area
+ 00000338			endDisplayNewline:
+ 00000338  8B 45 E8			mov		eax, colNum
+ 0000033B  3B 45 FC			cmp		eax, sec1Cols
+ 0000033E  8B 75 E0			mov		esi, arrayAddress
+ 00000341  7D 10			jge		sec2Area
 
 					; We're displaying values to the section 1 area of the output
 					; To display in section 1 we multiply the current col num by the 
 					; amount of rows in section 1 and add the row num as the offset
- 000002AC  8B 45 E8			mov		eax, colNum
- 000002AF  F7 65 F8			mul		sec1Rows
- 000002B2  03 45 EC			add		eax, rowNum
- 000002B5  F7 65 E4			mul		bytesPerElem
- 000002B8  03 F0			add		esi, eax
- 000002BA  EB 14			jmp		displayArrayValue
+ 00000343  8B 45 E8			mov		eax, colNum
+ 00000346  F7 65 F8			mul		sec1Rows
+ 00000349  03 45 EC			add		eax, rowNum
+ 0000034C  F7 65 E4			mul		bytesPerElem
+ 0000034F  03 F0			add		esi, eax
+ 00000351  EB 14			jmp		displayArrayValue
 
- 000002BC			sec2Area:
+ 00000353			sec2Area:
 					; We're displaying values to the section 2 area of the output
 					; To display in section 2 we get difference between the current col num
 					; and the amount of cols in section 1, multipy that by the amount of rows
 					; in section 2 and add the row num as the offset, then add the amount elems
 					; that exist in section 1 before section 2
- 000002BC  8B 45 E8			mov		eax, colNum
- 000002BF  2B 45 FC			sub		eax, sec1Cols
- 000002C2  F7 65 F0			mul		sec2Rows
- 000002C5  03 45 EC			add		eax, rowNum
- 000002C8  F7 65 E4			mul		bytesPerElem
- 000002CB  03 45 F4			add		eax, sec1ElemCount
- 000002CE  03 F0			add		esi, eax
+ 00000353  8B 45 E8			mov		eax, colNum
+ 00000356  2B 45 FC			sub		eax, sec1Cols
+ 00000359  F7 65 F0			mul		sec2Rows
+ 0000035C  03 45 EC			add		eax, rowNum
+ 0000035F  F7 65 E4			mul		bytesPerElem
+ 00000362  03 45 F4			add		eax, sec1ElemCount
+ 00000365  03 F0			add		esi, eax
 
- 000002D0			displayArrayValue:
+ 00000367			displayArrayValue:
 					; Display the value in the array
- 000002D0  8B 06			mov		eax, [esi]
- 000002D2  E8 00000000 E		call	WriteDec
+ 00000367  8B 06			mov		eax, [esi]
+ 00000369  E8 00000000 E		call	WriteDec
 					
 					; Display spaces after each number=
- 000002D7  BA 00000149 R		mov		edx, OFFSET numberPaddingMsg
- 000002DC  E8 00000000 E		call	WriteString
+ 0000036E  BA 0000022E R		mov		edx, OFFSET numberPaddingMsg
+ 00000373  E8 00000000 E		call	WriteString
 
 					; Increment col number and number of numbers we've displayed
- 000002E1  FF 45 E8			inc		colNum
+ 00000378  FF 45 E8			inc		colNum
 
 					; Loop printing the array values
- 000002E4  E2 A6			loop	begDisplayList
- 000002E6  E8 00000000 E		call	CrLf
- 000002EB  E8 00000000 E		call	CrLf
+ 0000037B  E2 A6			loop	begDisplayList
+ 0000037D  E8 00000000 E		call	CrLf
+ 00000382  E8 00000000 E		call	CrLf
 
 					; Restore all the registers
- 000002F0  61				popad
- 000002F1  C9		   *	    leave  
- 000002F2  C2 000C			ret		12
- 000002F5			DisplayList ENDP
+ 00000387  61				popad
+ 00000388  C9		   *	    leave  
+ 00000389  C2 000C			ret		12
+ 0000038C			DisplayList ENDP
 
 				END main
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/09/17 15:00:00
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/10/17 14:50:41
 9Sorting Random Integers     (sorting-random-integers.asm    Symbols 2 - 1
 
 
@@ -805,8 +993,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 000004B0 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 000002F5 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 000005A8 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 0000038C Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -820,7 +1008,7 @@ CreateFileA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-DisplayList  . . . . . . . . . .	P Near	 00000220 _TEXT	Length= 000000D5 Public STDCALL
+DisplayList  . . . . . . . . . .	P Near	 000002B7 _TEXT	Length= 000000D5 Public STDCALL
   sec1Cols . . . . . . . . . . .	DWord	 bp - 00000004
   sec1Rows . . . . . . . . . . .	DWord	 bp - 00000008
   sec1ElemCount  . . . . . . . .	DWord	 bp - 0000000C
@@ -829,35 +1017,38 @@ DisplayList  . . . . . . . . . .	P Near	 00000220 _TEXT	Length= 000000D5 Public 
   colNum . . . . . . . . . . . .	DWord	 bp - 00000018
   bytesPerElem . . . . . . . . .	DWord	 bp - 0000001C
   arrayAddress . . . . . . . . .	DWord	 bp - 00000020
-  setupSec1Data  . . . . . . . .	L Near	 00000268 _TEXT	
-  endSecDataCalc . . . . . . . .	L Near	 0000027E _TEXT	
-  begDisplayList . . . . . . . .	L Near	 0000028C _TEXT	
-  endDisplayNewline  . . . . . .	L Near	 000002A1 _TEXT	
-  sec2Area . . . . . . . . . . .	L Near	 000002BC _TEXT	
-  displayArrayValue  . . . . . .	L Near	 000002D0 _TEXT	
-DisplayMedian  . . . . . . . . .	P Near	 000001C1 _TEXT	Length= 0000005F Public STDCALL
+  setupSec1Data  . . . . . . . .	L Near	 000002FF _TEXT	
+  endSecDataCalc . . . . . . . .	L Near	 00000315 _TEXT	
+  begDisplayList . . . . . . . .	L Near	 00000323 _TEXT	
+  endDisplayNewline  . . . . . .	L Near	 00000338 _TEXT	
+  sec2Area . . . . . . . . . . .	L Near	 00000353 _TEXT	
+  displayArrayValue  . . . . . .	L Near	 00000367 _TEXT	
+DisplayMedian  . . . . . . . . .	P Near	 00000258 _TEXT	Length= 0000005F Public STDCALL
   median . . . . . . . . . . . .	DWord	 bp - 00000004
   divisor  . . . . . . . . . . .	DWord	 bp - 00000008
-  showMedian . . . . . . . . . .	L Near	 000001FC _TEXT	
+  showMedian . . . . . . . . . .	L Near	 00000293 _TEXT	
 DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ExitProcess  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 FileTimeToDosDateTime  . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 FileTimeToSystemTime . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-FillArray  . . . . . . . . . . .	P Near	 000000BE _TEXT	Length= 00000029 Public STDCALL
-  begFill  . . . . . . . . . . .	L Near	 000000D1 _TEXT	
+FillArray  . . . . . . . . . . .	P Near	 000000C8 _TEXT	Length= 0000001C Public STDCALL
 FlushConsoleInputBuffer  . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 FormatMessageA . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GenerateNumbersToFile  . . . . .	P Near	 000000E4 _TEXT	Length= 00000054 Public STDCALL
+  randomNumber . . . . . . . . .	DWord	 bp - 00000004
+  fileHandle . . . . . . . . . .	DWord	 bp - 00000008
+  begWritingToFile . . . . . . .	L Near	 00000104 _TEXT	
 GetCommandLineA  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetCommandTail . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetConsoleCP . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetConsoleCursorInfo . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetConsoleMode . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetConsoleScreenBufferInfo . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-GetData  . . . . . . . . . . . .	P Near	 00000082 _TEXT	Length= 0000003C Public STDCALL
-  begUserInput . . . . . . . . .	L Near	 00000089 _TEXT	
-  invalidInput . . . . . . . . .	L Near	 000000A6 _TEXT	
-  endUserInput . . . . . . . . .	L Near	 000000B2 _TEXT	
+GetData  . . . . . . . . . . . .	P Near	 0000008C _TEXT	Length= 0000003C Public STDCALL
+  begUserInput . . . . . . . . .	L Near	 00000093 _TEXT	
+  invalidInput . . . . . . . . .	L Near	 000000B0 _TEXT	
+  endUserInput . . . . . . . . .	L Near	 000000BC _TEXT	
 GetDateTime  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetFileTime  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetKeyState  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -877,7 +1068,7 @@ HeapCreate . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 HeapDestroy  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 HeapFree . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 HeapSize . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-Introduction . . . . . . . . . .	P Near	 00000075 _TEXT	Length= 0000000D Public STDCALL
+Introduction . . . . . . . . . .	P Near	 00000075 _TEXT	Length= 00000017 Public STDCALL
 IsDigit  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 LocalFree  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 MessageBoxA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -886,18 +1077,18 @@ MsgBox . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 OpenInputFile  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ParseDecimal32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ParseInteger32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-Partition  . . . . . . . . . . .	P Near	 0000011D _TEXT	Length= 0000004A Public STDCALL
+Partition  . . . . . . . . . . .	P Near	 000001B4 _TEXT	Length= 0000004A Public STDCALL
   pivot  . . . . . . . . . . . .	DWord	 bp - 00000004
   pivotIndex . . . . . . . . . .	DWord	 bp - 00000008
-  begLoop  . . . . . . . . . . .	L Near	 00000136 _TEXT	
-  endSwap  . . . . . . . . . . .	L Near	 0000014B _TEXT	
+  begLoop  . . . . . . . . . . .	L Near	 000001CD _TEXT	
+  endSwap  . . . . . . . . . . .	L Near	 000001E2 _TEXT	
 PeekConsoleInputA  . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-QuickSort  . . . . . . . . . . .	P Near	 00000167 _TEXT	Length= 0000005A Public STDCALL
+QuickSort  . . . . . . . . . . .	P Near	 000001FE _TEXT	Length= 0000005A Public STDCALL
   arrayAddress . . . . . . . . .	DWord	 bp - 00000004
   lo . . . . . . . . . . . . . .	DWord	 bp - 00000008
   hi . . . . . . . . . . . . . .	DWord	 bp - 0000000C
   pi . . . . . . . . . . . . . .	DWord	 bp - 00000010
-  endSort  . . . . . . . . . . .	L Near	 000001BC _TEXT	
+  endSort  . . . . . . . . . . .	L Near	 00000253 _TEXT	
 Random32 . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 RandomRange  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Randomize  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -912,6 +1103,10 @@ ReadHex  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 ReadInt  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadKeyFlush . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadKey  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadNumbersFromFileToArray . . .	P Near	 00000138 _TEXT	Length= 00000046 Public STDCALL
+  number . . . . . . . . . . . .	DWord	 bp - 00000004
+  fileHandle . . . . . . . . . .	DWord	 bp - 00000008
+  begReadingFromFile . . . . . .	L Near	 00000152 _TEXT	
 ReadString . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SetConsoleCursorInfo . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SetConsoleCursorPosition . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -925,14 +1120,14 @@ SetLocalTime . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 SetTextColor . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ShowFPUStack . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Sleep  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-SortList . . . . . . . . . . . .	P Near	 000000E7 _TEXT	Length= 00000018 Public STDCALL
+SortList . . . . . . . . . . . .	P Near	 0000017E _TEXT	Length= 00000018 Public STDCALL
 StrLength  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Str_compare  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Str_copy . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Str_length . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Str_trim . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Str_ucase  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-SwapArrayElements  . . . . . . .	P Near	 000000FF _TEXT	Length= 0000001E Public STDCALL
+SwapArrayElements  . . . . . . .	P Near	 00000196 _TEXT	Length= 0000001E Public STDCALL
 SystemTimeToFileTime . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WaitMsg  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteBinB  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -1176,18 +1371,19 @@ VK_UP  . . . . . . . . . . . . .	Number	 00000026h
 WINDOW_BUFFER_SIZE_EVENT . . . .	Number	 00000004h   
 WriteConsoleOutputCharacter  . .	Text   	 WriteConsoleOutputCharacterA
 WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
-arraySizePrompt  . . . . . . . .	Byte	 00000103 _DATA	
-arraySize  . . . . . . . . . . .	DWord	 0000018C _DATA	
-array  . . . . . . . . . . . . .	DWord	 00000190 _DATA	
+arraySizePrompt  . . . . . . . .	Byte	 000001E8 _DATA	
+arraySize  . . . . . . . . . . .	DWord	 00000284 _DATA	
+array  . . . . . . . . . . . . .	DWord	 00000288 _DATA	
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
+extraCreditMsg . . . . . . . . .	Byte	 00000103 _DATA	
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
 introMsg . . . . . . . . . . . .	Byte	 00000000 _DATA	
-invalidInputMsg  . . . . . . . .	Byte	 00000137 _DATA	
+invalidInputMsg  . . . . . . . .	Byte	 0000021C _DATA	
 lightBlue  . . . . . . . . . . .	Number	 00000009h   
 lightCyan  . . . . . . . . . . .	Number	 0000000Bh   
 lightGray  . . . . . . . . . . .	Number	 00000007h   
@@ -1195,15 +1391,16 @@ lightGreen . . . . . . . . . . .	Number	 0000000Ah
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
-medianMsg  . . . . . . . . . . .	Byte	 0000017D _DATA	
-numberPaddingMsg . . . . . . . .	Byte	 00000149 _DATA	
-periodChar . . . . . . . . . . .	Byte	 00000147 _DATA	
+medianMsg  . . . . . . . . . . .	Byte	 00000262 _DATA	
+numberPaddingMsg . . . . . . . .	Byte	 0000022E _DATA	
+numbersFilename  . . . . . . . .	Byte	 00000271 _DATA	
+periodChar . . . . . . . . . . .	Byte	 0000022C _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
-sortedArrayMsg . . . . . . . . .	Byte	 0000016A _DATA	
-unsortedArrayMsg . . . . . . . .	Byte	 0000014B _DATA	
+sortedArrayMsg . . . . . . . . .	Byte	 0000024F _DATA	
+unsortedArrayMsg . . . . . . . .	Byte	 00000230 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
 
-	   0 Warnings
+	   1 Warnings
 	   0 Errors
