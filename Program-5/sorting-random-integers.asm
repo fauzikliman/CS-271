@@ -535,7 +535,8 @@ DisplayMedian PROC
 	div		ebx
 	mov		ecx, eax			; Move median index to ecx
 
-	; Push value in array to the FPU stack
+	; Initialize the FPU and push value in array to the FPU stack
+	FINIT
 	FILD	DWORD PTR [esi + ecx * 4]
 
 	; If there is a remainder of 0, it means that the array has an even number of
