@@ -15,17 +15,17 @@ TITLE Sorting Random Integers     (sorting-random-integers.asm)
 
 INCLUDE Irvine32.inc
 
-MIN_ARRAY_SIZE = 10
-MAX_ARRAY_SIZE = 200
+MIN_ARRAY_SIZE = 10		; Minimum size of the array
+MAX_ARRAY_SIZE = 200	; Maximum size of the array
 
-MIN_ARRAY_NUM = 100
-MAX_ARRAY_NUM = 999
+MIN_ARRAY_NUM = 100		; Minimum value of element in array
+MAX_ARRAY_NUM = 999		; Maximum value of element in array
 
-NUM_PER_LINE = 10
+NUM_PER_LINE = 10		; Amount of numbers to be displayed per row
 
 .data
 
-introMsg			BYTE	"Sorting Random Integer", 9, 9, 9, "Programmed by Fauzi Kliman", 10, 13,
+introMsg			BYTE	"Sorting Random Integers", 9, 9, 9, "Programmed by Fauzi Kliman", 10, 13,
 							"This program generates random numbers in the range [100 .. 999],", 10, 13,
 							"displays the original list, sorts the list, and calculates the", 10, 13,
 							"median value. Finally, it displays the list sorted in descending order.", 10, 13, 10, 13, 0
@@ -89,7 +89,7 @@ main PROC
 main ENDP
 
 ; Procedure to display the program name and various information about it
-; Recieves: introMsg is a global variable
+; Recieves: introMsg and extraCreditMsg are global variable
 ; Returns: none
 ; Preconditions: none
 ; Registers changed: none
@@ -184,13 +184,13 @@ FillArray PROC
 	push	ecx
 	call	ReadNumbersFromFileToArray
 
-	; Clean the stack frame and restore all the registers
+	; Clean up the stack frame and restore all the registers
 	popad
 	pop		ebp
 	ret		8
 FillArray ENDP
 
-; Procedure to generate random numbers to a file
+; Procedure to generate random numbers to the numbers file
 ; Recieves: array size
 ; Returns: none
 ; Preconditions: none
@@ -240,7 +240,7 @@ begWritingToFile:
 	mov		ecx, 4
 	call	WriteToFile
 
-	; Restore the random range, and loop counter
+	; Restore the loop counter and random range
 	pop		ecx
 	pop		ebx
 
@@ -249,12 +249,12 @@ begWritingToFile:
 	mov		eax, fileHandle
 	call	CloseFile
 
-	; Clean the stack frame and restore all the registers
+	; Clean up the stack frame and restore all the registers
 	popad
 	ret		4
 GenerateNumbersToFile ENDP
 
-; Procedure to sort the array recursively using quickSort
+; Procedure to read numbers from the numbers file to the array thats passed in
 ; Recieves: address of DWORD array to fill, array size
 ; Returns: array is filled with numbers from the numbers file
 ; Preconditions: none
@@ -308,7 +308,7 @@ begReadingFromFile:
 	mov		eax, fileHandle
 	call	CloseFile
 
-	; Clean the stack and restore all the registers
+	; Clean up the stack and restore all the registers
 	popad
 	ret	8
 ReadNumbersFromFileToArray ENDP
@@ -336,7 +336,7 @@ SortList PROC
 	push	eax
 	call	QuickSort
 
-	; Clean the stack frame and restore all the registers
+	; Clean up the stack frame and restore all the registers
 	popad
 	pop		ebp
 	ret		8
@@ -349,7 +349,7 @@ SortList ENDP
 ; Registers changed: none
 SwapArrayElements PROC
 	
-	; Setup the stack fram and save all the registers
+	; Setup the stack frame and save all the registers
 	push	ebp
 	mov		ebp, esp
 	pushad
@@ -369,20 +369,20 @@ SwapArrayElements PROC
 	mov		[edi + ecx * 4], ebx
 	mov		[edi + edx * 4], eax
 
-	; Clean the stack frame and restore all the registers
+	; Clean up the stack frame and restore all the registers
 	popad
 	pop		ebp
 	ret		12
 SwapArrayElements ENDP
 
-; Procedure put the pivot point, the last element, in the correct position
+; Procedure to put the pivot point, the last element, in the correct position
 ;	relative to the other elements, i.e. all elements greater
 ;	than or equal to the pivot are placed to the left of it and all
 ;	elements less than the pivot are placed to the right of it
 ; Recieves: address of DWORD array to fill, start index, end index, address of variable to
 ;	contain the index of the pivot
 ; Returns: the index of the pivot
-; Preconditions: none
+; Preconditions: start/end index are within bounds of the array
 ; Registers changed: none
 Partition PROC
 	
@@ -437,7 +437,7 @@ endSwap:
 	mov		eax, pivotIndex
 	mov		[edi], eax
 	
-	; Clean the stack frame and restore all the registers
+	; Clean up the stack frame and restore all the registers
 	popad
 	ret		16
 Partition ENDP
@@ -475,6 +475,7 @@ QuickSort PROC
 	mov		eax, ebp
 	sub		eax, 16
 
+	; Get the index of the pivot in the array
 	push	arrayAddress
 	push	lo
 	push	hi
@@ -500,12 +501,12 @@ QuickSort PROC
 	call	QuickSort
 
 endSort:
-	; Clean the stack frame and restore all the registers
+	; Clean up the stack frame and restore all the registers
 	popad
 	ret		12
 QuickSort ENDP
 
-; Procedure to display the median of the array
+; Procedure to calculate and display the median of the array
 ; Recieves: address of DWORD array to fill, array size
 ; Returns: none
 ; Preconditions: the array is sorted in descending order
@@ -565,12 +566,11 @@ showMedian:
 	call	CrLf
 	call	CrLf
 
-	; Clean the stack frame and restore all the registers
+	; Clean up the stack frame and restore all the registers
 	popad
 	ret		8
 DisplayMedian ENDP
 
-; Displays the array
 ; Procedure to display a message and an array
 ; Recieves: address of DWORD array to display, array size, address of message to display
 ; Returns: none

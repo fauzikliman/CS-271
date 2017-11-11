@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/10/17 14:50:41
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/10/17 20:46:42
 9Sorting Random Integers     (sorting-random-integers.asm    Page 1 - 1
 
 
@@ -36,72 +36,72 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/10/17 14:50:41
 			      C .LIST
 			      C 
 
- = 0000000A			MIN_ARRAY_SIZE = 10
- = 000000C8			MAX_ARRAY_SIZE = 200
+ = 0000000A			MIN_ARRAY_SIZE = 10		; Minimum size of the array
+ = 000000C8			MAX_ARRAY_SIZE = 200	; Maximum size of the array
 
- = 00000064			MIN_ARRAY_NUM = 100
- = 000003E7			MAX_ARRAY_NUM = 999
+ = 00000064			MIN_ARRAY_NUM = 100		; Minimum value of element in array
+ = 000003E7			MAX_ARRAY_NUM = 999		; Maximum value of element in array
 
- = 0000000A			NUM_PER_LINE = 10
+ = 0000000A			NUM_PER_LINE = 10		; Amount of numbers to be displayed per row
 
  00000000			.data
 
- 00000000 53 6F 72 74 69	introMsg			BYTE	"Sorting Random Integer", 9, 9, 9, "Programmed by Fauzi Kliman", 10, 13,
+ 00000000 53 6F 72 74 69	introMsg			BYTE	"Sorting Random Integers", 9, 9, 9, "Programmed by Fauzi Kliman", 10, 13,
 	   6E 67 20 52 61
 	   6E 64 6F 6D 20
 	   49 6E 74 65 67
-	   65 72 09 09 09
-	   50 72 6F 67 72
-	   61 6D 6D 65 64
-	   20 62 79 20 46
-	   61 75 7A 69 20
-	   4B 6C 69 6D 61
-	   6E 0A 0D 54 68
-	   69 73 20 70 72
-	   6F 67 72 61 6D
-	   20 67 65 6E 65
-	   72 61 74 65 73
-	   20 72 61 6E 64
-	   6F 6D 20 6E 75
-	   6D 62 65 72 73
-	   20 69 6E 20 74
-	   68 65 20 72 61
-	   6E 67 65 20 5B
-	   31 30 30 20 2E
-	   2E 20 39 39 39
-	   5D 2C 0A 0D 64
-	   69 73 70 6C 61
-	   79 73 20 74 68
-	   65 20 6F 72 69
-	   67 69 6E 61 6C
-	   20 6C 69 73 74
-	   2C 20 73 6F 72
-	   74 73 20 74 68
-	   65 20 6C 69 73
-	   74 2C 20 61 6E
-	   64 20 63 61 6C
-	   63 75 6C 61 74
-	   65 73 20 74 68
-	   65 0A 0D 6D 65
-	   64 69 61 6E 20
-	   76 61 6C 75 65
-	   2E 20 46 69 6E
-	   61 6C 6C 79 2C
-	   20 69 74 20 64
-	   69 73 70 6C 61
-	   79 73 20 74 68
-	   65 20 6C 69 73
-	   74 20 73 6F 72
-	   74 65 64 20 69
-	   6E 20 64 65 73
-	   63 65 6E 64 69
-	   6E 67 20 6F 72
-	   64 65 72 2E 0A
-	   0D 0A 0D 00
+	   65 72 73 09 09
+	   09 50 72 6F 67
+	   72 61 6D 6D 65
+	   64 20 62 79 20
+	   46 61 75 7A 69
+	   20 4B 6C 69 6D
+	   61 6E 0A 0D 54
+	   68 69 73 20 70
+	   72 6F 67 72 61
+	   6D 20 67 65 6E
+	   65 72 61 74 65
+	   73 20 72 61 6E
+	   64 6F 6D 20 6E
+	   75 6D 62 65 72
+	   73 20 69 6E 20
+	   74 68 65 20 72
+	   61 6E 67 65 20
+	   5B 31 30 30 20
+	   2E 2E 20 39 39
+	   39 5D 2C 0A 0D
+	   64 69 73 70 6C
+	   61 79 73 20 74
+	   68 65 20 6F 72
+	   69 67 69 6E 61
+	   6C 20 6C 69 73
+	   74 2C 20 73 6F
+	   72 74 73 20 74
+	   68 65 20 6C 69
+	   73 74 2C 20 61
+	   6E 64 20 63 61
+	   6C 63 75 6C 61
+	   74 65 73 20 74
+	   68 65 0A 0D 6D
+	   65 64 69 61 6E
+	   20 76 61 6C 75
+	   65 2E 20 46 69
+	   6E 61 6C 6C 79
+	   2C 20 69 74 20
+	   64 69 73 70 6C
+	   61 79 73 20 74
+	   68 65 20 6C 69
+	   73 74 20 73 6F
+	   72 74 65 64 20
+	   69 6E 20 64 65
+	   73 63 65 6E 64
+	   69 6E 67 20 6F
+	   72 64 65 72 2E
+	   0A 0D 0A 0D 00
 											"This program generates random numbers in the range [100 .. 999],", 10, 13,
 											"displays the original list, sorts the list, and calculates the", 10, 13,
 											"median value. Finally, it displays the list sorted in descending order.", 10, 13, 10, 13, 0
- 00000103 2A 2A 45 43 3A	extraCreditMsg		BYTE	"**EC: Numbers are displayed ordered by column", 10, 13,
+ 00000104 2A 2A 45 43 3A	extraCreditMsg		BYTE	"**EC: Numbers are displayed ordered by column", 10, 13,
 	   20 4E 75 6D 62
 	   65 72 73 20 61
 	   72 65 20 64 69
@@ -150,7 +150,7 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/10/17 14:50:41
 											"**EC: Quick Sort is used to sort the list", 10, 13,
 											"**EC: FPU is used for calculating and rounding the median", 10, 13,
 											"**EC: Numbers are generated into a file and then read from to fill the list", 10, 13, 10, 13, 0
- 000001E8 48 6F 77 20 6D	arraySizePrompt		BYTE	"How many numbers should be generated? [10 .. 200]: ", 0
+ 000001E9 48 6F 77 20 6D	arraySizePrompt		BYTE	"How many numbers should be generated? [10 .. 200]: ", 0
 	   61 6E 79 20 6E
 	   75 6D 62 65 72
 	   73 20 73 68 6F
@@ -161,32 +161,32 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/10/17 14:50:41
 	   30 20 2E 2E 20
 	   32 30 30 5D 3A
 	   20 00
- 0000021C 49 6E 76 61 6C	invalidInputMsg		BYTE	"Invalid input", 10, 13, 0
+ 0000021D 49 6E 76 61 6C	invalidInputMsg		BYTE	"Invalid input", 10, 13, 0
 	   69 64 20 69 6E
 	   70 75 74 0A 0D
 	   00
- 0000022C 2E 00			periodChar			BYTE	".", 0
- 0000022E 09 00			numberPaddingMsg	BYTE	9, 0
- 00000230 54 68 65 20 75	unsortedArrayMsg	BYTE	"The unsorted random numbers:", 10, 13, 0
+ 0000022D 2E 00			periodChar			BYTE	".", 0
+ 0000022F 09 00			numberPaddingMsg	BYTE	9, 0
+ 00000231 54 68 65 20 75	unsortedArrayMsg	BYTE	"The unsorted random numbers:", 10, 13, 0
 	   6E 73 6F 72 74
 	   65 64 20 72 61
 	   6E 64 6F 6D 20
 	   6E 75 6D 62 65
 	   72 73 3A 0A 0D
 	   00
- 0000024F 54 68 65 20 73	sortedArrayMsg		BYTE	"The sorted list:", 10, 13, 0
+ 00000250 54 68 65 20 73	sortedArrayMsg		BYTE	"The sorted list:", 10, 13, 0
 	   6F 72 74 65 64
 	   20 6C 69 73 74
 	   3A 0A 0D 00
- 00000262 54 68 65 20 6D	medianMsg			BYTE	"The median is ", 0
+ 00000263 54 68 65 20 6D	medianMsg			BYTE	"The median is ", 0
 	   65 64 69 61 6E
 	   20 69 73 20 00
- 00000271 72 61 6E 64 6F	numbersFilename		BYTE	"random-numbers.txt", 0
+ 00000272 72 61 6E 64 6F	numbersFilename		BYTE	"random-numbers.txt", 0
 	   6D 2D 6E 75 6D
 	   62 65 72 73 2E
 	   74 78 74 00
- 00000284 00000000		arraySize			DWORD	0
- 00000288  000000C8 [		array				DWORD	MAX_ARRAY_SIZE DUP(0)
+ 00000285 00000000		arraySize			DWORD	0
+ 00000289  000000C8 [		array				DWORD	MAX_ARRAY_SIZE DUP(0)
 	    00000000
 	   ]
 
@@ -201,34 +201,34 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/10/17 14:50:41
  00000005  E8 0000006B			call	Introduction
 
 					; Get the amount numbers to sort from the user
- 0000000A  68 00000284 R		push	OFFSET arraySize
+ 0000000A  68 00000285 R		push	OFFSET arraySize
  0000000F  E8 00000078			call	GetData
 
 					; Generate amount of numbers specified by user randomly
- 00000014  68 00000288 R		push	OFFSET array
- 00000019  FF 35 00000284 R		push	arraySize
+ 00000014  68 00000289 R		push	OFFSET array
+ 00000019  FF 35 00000285 R		push	arraySize
  0000001F  E8 000000A4			call	FillArray
 
 					; Display the unsorted array to the user
- 00000024  68 00000288 R		push	OFFSET array
- 00000029  FF 35 00000284 R		push	arraySize
- 0000002F  68 00000230 R		push	OFFSET unsortedArrayMsg
+ 00000024  68 00000289 R		push	OFFSET array
+ 00000029  FF 35 00000285 R		push	arraySize
+ 0000002F  68 00000231 R		push	OFFSET unsortedArrayMsg
  00000034  E8 0000027E			call	DisplayList
 
 					; Sort the array
- 00000039  68 00000288 R		push	OFFSET array
- 0000003E  FF 35 00000284 R		push	arraySize
+ 00000039  68 00000289 R		push	OFFSET array
+ 0000003E  FF 35 00000285 R		push	arraySize
  00000044  E8 00000135			call	SortList
 
 					; Display the median of the array
- 00000049  68 00000288 R		push	OFFSET array
- 0000004E  FF 35 00000284 R		push	arraySize
+ 00000049  68 00000289 R		push	OFFSET array
+ 0000004E  FF 35 00000285 R		push	arraySize
  00000054  E8 000001FF			call	DisplayMedian
 
 					; Display the sorted array to the user
- 00000059  68 00000288 R		push	OFFSET array
- 0000005E  FF 35 00000284 R		push	arraySize
- 00000064  68 0000024F R		push	OFFSET sortedArrayMsg
+ 00000059  68 00000289 R		push	OFFSET array
+ 0000005E  FF 35 00000285 R		push	arraySize
+ 00000064  68 00000250 R		push	OFFSET sortedArrayMsg
  00000069  E8 00000249			call	DisplayList
 
 					exit	; exit to operating system
@@ -237,7 +237,7 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/10/17 14:50:41
  00000075			main ENDP
 
 				; Procedure to display the program name and various information about it
-				; Recieves: introMsg is a global variable
+				; Recieves: introMsg and extraCreditMsg are global variable
 				; Returns: none
 				; Preconditions: none
 				; Registers changed: none
@@ -251,7 +251,7 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/10/17 14:50:41
  0000007B  E8 00000000 E		call	WriteString
 
 					; Display the extra credit message
- 00000080  BA 00000103 R		mov		edx, OFFSET extraCreditMsg
+ 00000080  BA 00000104 R		mov		edx, OFFSET extraCreditMsg
  00000085  E8 00000000 E		call	WriteString
 
 					; Restore all the registers
@@ -276,7 +276,7 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/10/17 14:50:41
 
 					; Prompt the user for the amount of numbers to sort
  00000093			begUserInput:
- 00000093  BA 000001E8 R		mov		edx, OFFSET arraySizePrompt
+ 00000093  BA 000001E9 R		mov		edx, OFFSET arraySizePrompt
  00000098  E8 00000000 E		call	WriteString
  0000009D  E8 00000000 E		call	ReadInt
 
@@ -289,7 +289,7 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/10/17 14:50:41
 
 					; Display user input invalid message and go to asking for user input again
  000000B0			invalidInput:
- 000000B0  BA 0000021C R		mov		edx, OFFSET invalidInputMsg
+ 000000B0  BA 0000021D R		mov		edx, OFFSET invalidInputMsg
  000000B5  E8 00000000 E		call	WriteString
  000000BA  EB D7			jmp		begUserInput
 
@@ -332,13 +332,13 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/10/17 14:50:41
  000000D9  51				push	ecx
  000000DA  E8 00000059			call	ReadNumbersFromFileToArray
 
-					; Clean the stack frame and restore all the registers
+					; Clean up the stack frame and restore all the registers
  000000DF  61				popad
  000000E0  5D				pop		ebp
  000000E1  C2 0008			ret		8
  000000E4			FillArray ENDP
 
-				; Procedure to generate random numbers to a file
+				; Procedure to generate random numbers to the numbers file
 				; Recieves: array size
 				; Returns: none
 				; Preconditions: none
@@ -360,7 +360,7 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/10/17 14:50:41
 
 					; Create new text file to store the random numbers, CreateOutputFile
 					; modifies the ecx register
- 000000F4  BA 00000271 R		mov		edx, OFFSET numbersFilename
+ 000000F4  BA 00000272 R		mov		edx, OFFSET numbersFilename
  000000F9  E8 00000000 E		call	CreateOutputFile
  000000FE  89 45 F8			mov		fileHandle, eax
 
@@ -391,7 +391,7 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/10/17 14:50:41
  0000011D  B9 00000004			mov		ecx, 4
  00000122  E8 00000000 E		call	WriteToFile
 
-					; Restore the random range, and loop counter
+					; Restore the loop counter and random range
  00000127  59				pop		ecx
  00000128  5B				pop		ebx
 
@@ -400,13 +400,13 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/10/17 14:50:41
  0000012B  8B 45 F8			mov		eax, fileHandle
  0000012E  E8 00000000 E		call	CloseFile
 
-					; Clean the stack frame and restore all the registers
+					; Clean up the stack frame and restore all the registers
  00000133  61				popad
  00000134  C9		   *	    leave  
  00000135  C2 0004			ret		4
  00000138			GenerateNumbersToFile ENDP
 
-				; Procedure to sort the array recursively using quickSort
+				; Procedure to read numbers from the numbers file to the array thats passed in
 				; Recieves: address of DWORD array to fill, array size
 				; Returns: array is filled with numbers from the numbers file
 				; Preconditions: none
@@ -425,7 +425,7 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/10/17 14:50:41
  0000013F  8B 7D 0C			mov		edi, [ebp + 12]
 
 					; Create an input file handle to use for reading the file
- 00000142  BA 00000271 R		mov		edx, OFFSET numbersFilename
+ 00000142  BA 00000272 R		mov		edx, OFFSET numbersFilename
  00000147  E8 00000000 E		call	OpenInputFile
  0000014C  89 45 F8			mov		fileHandle, eax
 
@@ -463,7 +463,7 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/10/17 14:50:41
  00000171  8B 45 F8			mov		eax, fileHandle
  00000174  E8 00000000 E		call	CloseFile
 
-					; Clean the stack and restore all the registers
+					; Clean up the stack and restore all the registers
  00000179  61				popad
  0000017A  C9		   *	    leave  
  0000017B  C2 0008			ret	8
@@ -493,7 +493,7 @@ sorting-random-integers.asm(314) : warning A6004:procedure argument or local not
  0000018B  50				push	eax
  0000018C  E8 0000006D			call	QuickSort
 
-					; Clean the stack frame and restore all the registers
+					; Clean up the stack frame and restore all the registers
  00000191  61				popad
  00000192  5D				pop		ebp
  00000193  C2 0008			ret		8
@@ -506,7 +506,7 @@ sorting-random-integers.asm(314) : warning A6004:procedure argument or local not
 				; Registers changed: none
  00000196			SwapArrayElements PROC
 					
-					; Setup the stack fram and save all the registers
+					; Setup the stack frame and save all the registers
  00000196  55				push	ebp
  00000197  8B EC			mov		ebp, esp
  00000199  60				pushad
@@ -526,20 +526,20 @@ sorting-random-integers.asm(314) : warning A6004:procedure argument or local not
  000001A9  89 1C 8F			mov		[edi + ecx * 4], ebx
  000001AC  89 04 97			mov		[edi + edx * 4], eax
 
-					; Clean the stack frame and restore all the registers
+					; Clean up the stack frame and restore all the registers
  000001AF  61				popad
  000001B0  5D				pop		ebp
  000001B1  C2 000C			ret		12
  000001B4			SwapArrayElements ENDP
 
-				; Procedure put the pivot point, the last element, in the correct position
+				; Procedure to put the pivot point, the last element, in the correct position
 				;	relative to the other elements, i.e. all elements greater
 				;	than or equal to the pivot are placed to the left of it and all
 				;	elements less than the pivot are placed to the right of it
 				; Recieves: address of DWORD array to fill, start index, end index, address of variable to
 				;	contain the index of the pivot
 				; Returns: the index of the pivot
-				; Preconditions: none
+				; Preconditions: start/end index are within bounds of the array
 				; Registers changed: none
  000001B4			Partition PROC
 					
@@ -597,7 +597,7 @@ sorting-random-integers.asm(314) : warning A6004:procedure argument or local not
  000001F4  8B 45 F8			mov		eax, pivotIndex
  000001F7  89 07			mov		[edi], eax
 					
-					; Clean the stack frame and restore all the registers
+					; Clean up the stack frame and restore all the registers
  000001F9  61				popad
  000001FA  C9		   *	    leave  
  000001FB  C2 0010			ret		16
@@ -639,6 +639,7 @@ sorting-random-integers.asm(314) : warning A6004:procedure argument or local not
  0000021F  8B C5			mov		eax, ebp
  00000221  83 E8 10			sub		eax, 16
 
+					; Get the index of the pivot in the array
  00000224  FF 75 FC			push	arrayAddress
  00000227  FF 75 F8			push	lo
  0000022A  FF 75 F4			push	hi
@@ -664,13 +665,13 @@ sorting-random-integers.asm(314) : warning A6004:procedure argument or local not
  0000024E  E8 FFFFFFAB			call	QuickSort
 
  00000253			endSort:
-					; Clean the stack frame and restore all the registers
+					; Clean up the stack frame and restore all the registers
  00000253  61				popad
  00000254  C9		   *	    leave  
  00000255  C2 000C			ret		12
  00000258			QuickSort ENDP
 
-				; Procedure to display the median of the array
+				; Procedure to calculate and display the median of the array
 				; Recieves: address of DWORD array to fill, array size
 				; Returns: none
 				; Preconditions: the array is sorted in descending order
@@ -689,7 +690,7 @@ sorting-random-integers.asm(314) : warning A6004:procedure argument or local not
  0000025F  8B 75 0C			mov		esi, [ebp + 12]
 
 					; Display the median message
- 00000262  BA 00000262 R		mov		edx, OFFSET medianMsg
+ 00000262  BA 00000263 R		mov		edx, OFFSET medianMsg
  00000267  E8 00000000 E		call	WriteString
 
 					; Move 2 into divisor so we can use it to divide the FPU
@@ -729,18 +730,17 @@ sorting-random-integers.asm(314) : warning A6004:procedure argument or local not
 					; Display the median
  00000296  8B 45 FC			mov		eax, median
  00000299  E8 00000000 E		call	WriteDec
- 0000029E  BA 0000022C R		mov		edx, OFFSET periodChar
+ 0000029E  BA 0000022D R		mov		edx, OFFSET periodChar
  000002A3  E8 00000000 E		call	WriteString
  000002A8  E8 00000000 E		call	CrLf
  000002AD  E8 00000000 E		call	CrLf
 
-					; Clean the stack frame and restore all the registers
+					; Clean up the stack frame and restore all the registers
  000002B2  61				popad
  000002B3  C9		   *	    leave  
  000002B4  C2 0008			ret		8
  000002B7			DisplayMedian ENDP
 
-				; Displays the array
 				; Procedure to display a message and an array
 				; Recieves: address of DWORD array to display, array size, address of message to display
 				; Returns: none
@@ -800,7 +800,7 @@ sorting-random-integers.asm(314) : warning A6004:procedure argument or local not
  000002DB  8B C1			mov		eax, ecx			; ecx contains the size of the array
  000002DD  99				cdq
  000002DE  F7 F3			div		ebx
- 000002E0  89 45 F0	mov		sec2Rows, eax
+ 000002E0  89 45 F0			mov		sec2Rows, eax
 
 					; Section 1 only exists if all the elements could not be displayed in full rows of
 					; NUM_PER_LINE
@@ -881,7 +881,7 @@ sorting-random-integers.asm(314) : warning A6004:procedure argument or local not
  00000369  E8 00000000 E		call	WriteDec
 					
 					; Display spaces after each number=
- 0000036E  BA 0000022E R		mov		edx, OFFSET numberPaddingMsg
+ 0000036E  BA 0000022F R		mov		edx, OFFSET numberPaddingMsg
  00000373  E8 00000000 E		call	WriteString
 
 					; Increment col number and number of numbers we've displayed
@@ -899,7 +899,7 @@ sorting-random-integers.asm(314) : warning A6004:procedure argument or local not
  0000038C			DisplayList ENDP
 
 				END main
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/10/17 14:50:41
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/10/17 20:46:42
 9Sorting Random Integers     (sorting-random-integers.asm    Symbols 2 - 1
 
 
@@ -993,7 +993,7 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 000005A8 Para	  Public  'DATA'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 000005A9 Para	  Public  'DATA'	
 _TEXT  . . . . . . . . . . . . .	32 Bit	 0000038C Para	  Public  'CODE'	
 
 
@@ -1371,19 +1371,19 @@ VK_UP  . . . . . . . . . . . . .	Number	 00000026h
 WINDOW_BUFFER_SIZE_EVENT . . . .	Number	 00000004h   
 WriteConsoleOutputCharacter  . .	Text   	 WriteConsoleOutputCharacterA
 WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
-arraySizePrompt  . . . . . . . .	Byte	 000001E8 _DATA	
-arraySize  . . . . . . . . . . .	DWord	 00000284 _DATA	
-array  . . . . . . . . . . . . .	DWord	 00000288 _DATA	
+arraySizePrompt  . . . . . . . .	Byte	 000001E9 _DATA	
+arraySize  . . . . . . . . . . .	DWord	 00000285 _DATA	
+array  . . . . . . . . . . . . .	DWord	 00000289 _DATA	
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
-extraCreditMsg . . . . . . . . .	Byte	 00000103 _DATA	
+extraCreditMsg . . . . . . . . .	Byte	 00000104 _DATA	
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
 introMsg . . . . . . . . . . . .	Byte	 00000000 _DATA	
-invalidInputMsg  . . . . . . . .	Byte	 0000021C _DATA	
+invalidInputMsg  . . . . . . . .	Byte	 0000021D _DATA	
 lightBlue  . . . . . . . . . . .	Number	 00000009h   
 lightCyan  . . . . . . . . . . .	Number	 0000000Bh   
 lightGray  . . . . . . . . . . .	Number	 00000007h   
@@ -1391,13 +1391,13 @@ lightGreen . . . . . . . . . . .	Number	 0000000Ah
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
-medianMsg  . . . . . . . . . . .	Byte	 00000262 _DATA	
-numberPaddingMsg . . . . . . . .	Byte	 0000022E _DATA	
-numbersFilename  . . . . . . . .	Byte	 00000271 _DATA	
-periodChar . . . . . . . . . . .	Byte	 0000022C _DATA	
+medianMsg  . . . . . . . . . . .	Byte	 00000263 _DATA	
+numberPaddingMsg . . . . . . . .	Byte	 0000022F _DATA	
+numbersFilename  . . . . . . . .	Byte	 00000272 _DATA	
+periodChar . . . . . . . . . . .	Byte	 0000022D _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
-sortedArrayMsg . . . . . . . . .	Byte	 0000024F _DATA	
-unsortedArrayMsg . . . . . . . .	Byte	 00000230 _DATA	
+sortedArrayMsg . . . . . . . . .	Byte	 00000250 _DATA	
+unsortedArrayMsg . . . . . . . .	Byte	 00000231 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
