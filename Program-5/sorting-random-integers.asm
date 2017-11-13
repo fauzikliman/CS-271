@@ -112,7 +112,7 @@ Introduction PROC
 Introduction ENDP
 
 ; Procedure to get the amount of numbers the user wants to be sorted
-; Recieves: address of variable to hold user input
+; Recieves: address of variable to hold user input, invalidInputMsg is a global variable
 ; Returns: variable passed in contains a valid array size
 ; Preconditions: none
 ; Registers changed: none
@@ -507,7 +507,7 @@ endSort:
 QuickSort ENDP
 
 ; Procedure to calculate and display the median of the array
-; Recieves: address of DWORD array to fill, array size
+; Recieves: address of DWORD array to fill, array size, medianMsg is a global variable
 ; Returns: none
 ; Preconditions: the array is sorted in descending order
 ; Registers changed: none
@@ -573,7 +573,7 @@ showMedian:
 DisplayMedian ENDP
 
 ; Procedure to display a message and an array
-; Recieves: address of DWORD array to display, array size, address of message to display
+; Recieves: address of DWORD array to display, array size, address of message to display, numPaddingMsg is a global variable
 ; Returns: none
 ; Preconditions: none
 ; Registers changed: none
