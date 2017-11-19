@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/18/17 14:10:35
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/18/17 23:02:02
 0I/O Procedures     (input-output-procedures.asm	     Page 1 - 1
 
 
@@ -35,29 +35,357 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/18/17 14:10:35
 			      C .LIST
 			      C 
 
-				; (insert constant definitions here)
+				; Const definitions
+ = 0000000A			MAX_NUMBERS = 10
+
+				; Macro definitions
+
+				; Displays the string at the buffer address to the user
+				mDisplayString MACRO bufferAddr
+					; Save edx register
+					push	edx
+
+					; Display the string at the buffer
+					mov		edx, bufferAddr
+					call	WriteString
+
+					; Restore edx register
+					pop		edx
+				ENDM
+
+				; Displays a prompt and gets a string input from the user and stores it in the buffer
+				mGetString MACRO promptAddr, bufferAddr, bufferSize
+					; Display prompt
+					mDisplayString promptAddr
+
+					; Save ecx and edx register
+					push	ecx
+					push	edx
+
+					; Read input from user into buffer
+					mov		edx, bufferAddr
+					mov		ecx, bufferSize
+					call	ReadString
+
+					; Restore ecx and edx register
+					pop		edx
+					pop		ecx
+				ENDM
 
  00000000			.data
 
-				; (insert variable definitions here)
+ 00000000 50 52 4F 47 52	introMsg				BYTE	"PROGRAMMING ASSIGNMENT 6A: Designing low-level I/O procedures", 10, 13, 10, 13,
+	   41 4D 4D 49 4E
+	   47 20 41 53 53
+	   49 47 4E 4D 45
+	   4E 54 20 36 41
+	   3A 20 44 65 73
+	   69 67 6E 69 6E
+	   67 20 6C 6F 77
+	   2D 6C 65 76 65
+	   6C 20 49 2F 4F
+	   20 70 72 6F 63
+	   65 64 75 72 65
+	   73 0A 0D 0A 0D
+	   57 72 69 74 74
+	   65 6E 20 62 79
+	   3A 20 46 61 75
+	   7A 69 20 4B 6C
+	   69 6D 61 6E 0A
+	   0D 50 6C 65 61
+	   73 65 20 70 72
+	   6F 76 69 64 65
+	   20 31 30 20 75
+	   6E 73 69 67 6E
+	   65 64 20 64 65
+	   63 69 6D 61 6C
+	   20 69 6E 74 65
+	   67 65 72 73 2E
+	   0A 0D 45 61 63
+	   68 20 6E 75 6D
+	   62 65 72 20 6E
+	   65 65 64 73 20
+	   74 6F 20 62 65
+	   20 73 6D 61 6C
+	   6C 20 65 6E 6F
+	   75 67 68 20 74
+	   6F 20 66 69 74
+	   20 69 6E 73 69
+	   64 65 20 61 20
+	   33 32 20 62 69
+	   74 20 72 65 67
+	   69 73 74 65 72
+	   2E 0A 0D 41 66
+	   74 65 72 20 79
+	   6F 75 20 68 61
+	   76 65 20 66 69
+	   6E 69 73 68 65
+	   64 20 69 6E 70
+	   75 74 74 69 6E
+	   67 20 74 68 65
+	   20 72 61 77 20
+	   6E 75 6D 62 65
+	   72 73 20 49 20
+	   77 69 6C 6C 20
+	   64 69 73 70 6C
+	   61 79 20 61 20
+	   6C 69 73 74 0A
+	   0D 6F 66 20 74
+	   68 65 20 69 6E
+	   74 65 67 65 72
+	   73 2C 20 74 68
+	   65 69 72 20 73
+	   75 6D 2C 20 61
+	   6E 64 20 74 68
+	   65 69 72 20 61
+	   76 65 72 61 67
+	   65 2E 0A 0D 0A
+	   0D 00
+												"Written by: Fauzi Kliman", 10, 13,
+												"Please provide 10 unsigned decimal integers.", 10, 13,
+												"Each number needs to be small enough to fit inside a 32 bit register.", 10, 13,
+												"After you have finished inputting the raw numbers I will display a list", 10, 13,
+												"of the integers, their sum, and their average.", 10, 13, 10, 13, 0
+ 0000014C 50 6C 65 61 73	numberPrompt			BYTE	"Please enter an unsigned number: ", 0
+	   65 20 65 6E 74
+	   65 72 20 61 6E
+	   20 75 6E 73 69
+	   67 6E 65 64 20
+	   6E 75 6D 62 65
+	   72 3A 20 00
+ 0000016E 45 52 52 4F 52	invalidNumberMsg		BYTE	"ERROR: You did not enter an usigned number or your number was too big.", 10, 13, 0
+	   3A 20 59 6F 75
+	   20 64 69 64 20
+	   6E 6F 74 20 65
+	   6E 74 65 72 20
+	   61 6E 20 75 73
+	   69 67 6E 65 64
+	   20 6E 75 6D 62
+	   65 72 20 6F 72
+	   20 79 6F 75 72
+	   20 6E 75 6D 62
+	   65 72 20 77 61
+	   73 20 74 6F 6F
+	   20 62 69 67 2E
+	   0A 0D 00
+ 000001B7 50 6C 65 61 73	invalidNumberPrompt		BYTE	"Please try again: ", 0
+	   65 20 74 72 79
+	   20 61 67 61 69
+	   6E 3A 20 00
+ 000001CA 00000000		currentNumber			DWORD	0
 
  00000000			.code
  00000000			main PROC
+					; Display intro message
+ 00000000  68 00000000 R		push	OFFSET introMsg
+ 00000005  E8 00000034			call	DisplayIntro
 
-				; (insert executable instructions here)
+					; Get 10 numbers from the user
+ 0000000A  B9 0000000A			mov		ecx, MAX_NUMBERS
+
+ 0000000F  68 0000014C R		push	OFFSET numberPrompt
+ 00000014  68 000001B7 R		push	OFFSET invalidNumberPrompt
+ 00000019  68 0000016E R		push	OFFSET invalidNumberMsg
+ 0000001E  68 000001CA R		push	OFFSET currentNumber
+ 00000023  E8 00000027			call	ReadVal
+
+ 00000028  A1 000001CA R		mov		eax, currentNumber
+ 0000002D  E8 00000000 E		call	WriteDec
+ 00000032  E8 00000000 E		call	CrLf
 
 					exit	; exit to operating system
- 00000000  6A 00	   *	    push   +000000000h
- 00000002  E8 00000000 E   *	    call   ExitProcess
- 00000007			main ENDP
+ 00000037  6A 00	   *	    push   +000000000h
+ 00000039  E8 00000000 E   *	    call   ExitProcess
+ 0000003E			main ENDP
 
-				; (insert additional procedures here)
+				; Procedure to introduce the program and programmer, and how to use the program
+				; Recieves: address of intro message
+				; Returns: none
+				; Preconditions: none
+				; Registers changed: none
+ 0000003E			DisplayIntro PROC
+					; Setup stack
+ 0000003E  55				push	ebp
+ 0000003F  8B EC			mov		ebp, esp
+
+					; Display the intro message
+					mDisplayString [ebp + 8]
+ 00000041  52		     1		push	edx
+ 00000042  8B 55 08	     1		mov		edx, [ebp + 8]
+ 00000045  E8 00000000 E     1		call	WriteString
+ 0000004A  5A		     1		pop		edx
+
+					; Cleanup stack
+ 0000004B  5D				pop		ebp
+ 0000004C  C2 0004			ret		4
+ 0000004F			DisplayIntro ENDP
+
+				; Procedure to display a prompt for user input and gets a number from the user
+				; Recieves: address of number prompt, address of invalid number prompt, address of invalid number message,
+				;	address of variable to contain a valid number
+				; Returns: variable passed in contains a valid number from the user
+				; Preconditions: none
+				; Registers changed: none
+ 0000004F			ReadVal PROC
+					; Setup local variables and save all registers
+					LOCAL	tmpBufferSize:DWORD
+					LOCAL	tmpBuffer[80]:BYTE
+					LOCAL	parsedNumber:DWORD
+					LOCAL	parsedNumberFactor:DWORD
+					LOCAL	currentChar:DWORD
+ 0000004F  55		   *	    push   ebp
+ 00000050  8B EC	   *	    mov    ebp, esp
+ 00000052  83 C4 A0	   *	    add    esp, 0FFFFFFA0h
+ 00000055  60				pushad
+
+					; Init local variables
+ 00000056  C7 45 FC			mov		tmpBufferSize, 80
+	   00000050
+ 0000005D  C6 45 FB 00			mov		tmpBuffer[79], 0
+ 00000061  C7 45 A4			mov		parsedNumberFactor, 10
+	   0000000A
+
+					; Move address of tmp buffer to edi, address of number prompt to edx
+ 00000068  8D 7D AC			lea		edi, tmpBuffer
+
+					; Set direction flag to forward for when we're parsing the string
+ 0000006B  FC				cld
+
+ 0000006C			_promptNumber:
+					; Get user input, pass in number prompt, address of tmp buffer, size of tmp buffer
+					mGetString [ebp + 20], edi, tmpBufferSize
+ 0000006C  52		     2		push	edx
+ 0000006D  8B 55 14	     2		mov		edx, [ebp + 20]
+ 00000070  E8 00000000 E     2		call	WriteString
+ 00000075  5A		     2		pop		edx
+ 00000076  51		     1		push	ecx
+ 00000077  52		     1		push	edx
+ 00000078  8B D7	     1		mov		edx, edi
+ 0000007A  8B 4D FC	     1		mov		ecx, tmpBufferSize
+ 0000007D  E8 00000000 E     1		call	ReadString
+ 00000082  5A		     1		pop		edx
+ 00000083  59		     1		pop		ecx
+ 00000084  EB 22			jmp		_parseNumber
+
+ 00000086			_invalidPromptNumber:
+					; Display invalid number error, pass in invalid number message
+					mDisplayString [ebp + 12]
+ 00000086  52		     1		push	edx
+ 00000087  8B 55 0C	     1		mov		edx, [ebp + 12]
+ 0000008A  E8 00000000 E     1		call	WriteString
+ 0000008F  5A		     1		pop		edx
+
+					; Get user input, pass in invalid number prompt, address of tmp buffer, size of tmp buffer
+					mGetString [ebp + 16], edi, tmpBufferSize
+ 00000090  52		     2		push	edx
+ 00000091  8B 55 10	     2		mov		edx, [ebp + 16]
+ 00000094  E8 00000000 E     2		call	WriteString
+ 00000099  5A		     2		pop		edx
+ 0000009A  51		     1		push	ecx
+ 0000009B  52		     1		push	edx
+ 0000009C  8B D7	     1		mov		edx, edi
+ 0000009E  8B 4D FC	     1		mov		ecx, tmpBufferSize
+ 000000A1  E8 00000000 E     1		call	ReadString
+ 000000A6  5A		     1		pop		edx
+ 000000A7  59		     1		pop		ecx
+
+ 000000A8			_parseNumber:
+					; Init parsed number to 0
+ 000000A8  C7 45 A8			mov		parsedNumber, 0
+	   00000000
+
+					; Init number of digits processed to 0
+ 000000AF  B9 00000000			mov		ecx, 0
+
+					; Move address of tmp buffer to esi
+ 000000B4  8B F7			mov		esi, edi
+
+ 000000B6			_begParseLoop:
+					; Get current character byte in tmp buffer to al and move it currentChar
+ 000000B6  AC				lodsb
+ 000000B7  88 45 A0			mov		BYTE PTR currentChar, al
+
+					; Check if current character is 0, if so it means we're done
+ 000000BA  83 7D A0 00			cmp		currentChar, 0
+ 000000BE  74 24			je		_endParseNumber
+
+					; Check if current character is a valid digit, 48 = 0, 57 = 9, if not its invalid then
+ 000000C0  83 7D A0 30			cmp		currentChar, 48
+ 000000C4  7C C0			jl		_invalidPromptNumber
+ 000000C6  83 7D A0 39			cmp		currentChar, 57
+ 000000CA  7F BA			jg		_invalidPromptNUmber
+
+					; Else its a valid digit, multiply the current parsed number by 10 and add the current character
+					; as a digit by subtractin 48 (0) from it
+ 000000CC  8B 45 A8			mov		eax, parsedNumber
+ 000000CF  F7 65 A4			mul		parsedNumberFactor
+
+					; If the parsed number is too big, its invalid
+ 000000D2  72 B2			jc		_invalidPromptNumber
+
+					; Convert current character to digit by subtracting 48 (0) from it
+ 000000D4  8B 5D A0			mov		ebx, currentChar
+ 000000D7  83 EB 30			sub		ebx, 48
+
+					; Add the current digit to the parsed number
+ 000000DA  03 C3			add		eax, ebx
+
+					; If the parsed number is too big, its invalid
+ 000000DC  72 A8			jc		_invalidPromptNumber
+
+					; Update the parsed number variable and the amount of digits we've processed
+ 000000DE  89 45 A8			mov		parsedNumber, eax
+ 000000E1  41				inc		ecx
+
+					; Loop again to the next character
+ 000000E2  EB D2			jmp		_begParseLoop
+
+ 000000E4			_endParseNumber:
+					; If we didn't parse any digits, that means the user just pressed enter
+ 000000E4  83 F9 00			cmp		ecx, 0
+ 000000E7  74 9D			je		_invalidPromptNumber
+
+					; Move the parsed number into the address of the passed in variable to contain it
+ 000000E9  8B 45 A8			mov		eax, parsedNumber
+ 000000EC  8B 7D 08			mov		edi, [ebp + 8]
+ 000000EF  89 07			mov		[edi], eax
+
+					; Cleanup stack and restore all registers
+ 000000F1  61				popad
+ 000000F2  C9		   *	    leave  
+ 000000F3  C2 0010			ret		16
+ 000000F6			ReadVal ENDP
+
+				; Procedure write the number in the address given
+				; Recieves: address of variable that contains the number to be displayed to the user
+				; Returns: none
+				; Preconditions: variable contains a number
+				; Registers changed: none
+ 000000F6			WriteVal PROC
+					; Setup stack and save all registers
+ 000000F6  55				push	ebp
+ 000000F7  8B EC			mov		ebp, esp
+ 000000F9  60				pushad
+
+					; Cleanup stack and restore all registers
+ 000000FA  61				popad
+ 000000FB  5D				pop		ebp
+ 000000FC  C2 0004			ret		4
+ 000000FF			WriteVal ENDP
 
 				END main
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/18/17 14:10:35
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/18/17 23:02:02
 0I/O Procedures     (input-output-procedures.asm	     Symbols 2 - 1
 
 
+
+
+Macros:
+
+                N a m e                 Type
+
+mDisplayString . . . . . . . . .	Proc
+mGetString . . . . . . . . . . .	Proc
 
 
 Structures and Unions:
@@ -148,8 +476,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 00000000 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000007 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 000001CE Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 000000FF Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -163,6 +491,7 @@ CreateFileA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+DisplayIntro . . . . . . . . . .	P Near	 0000003E _TEXT	Length= 00000011 Public STDCALL
 DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ExitProcess  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -219,6 +548,17 @@ ReadInt  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 ReadKeyFlush . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadKey  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadString . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ReadVal  . . . . . . . . . . . .	P Near	 0000004F _TEXT	Length= 000000A7 Public STDCALL
+  tmpBufferSize  . . . . . . . .	DWord	 bp - 00000004
+  tmpBuffer  . . . . . . . . . .	Byte	 bp - 00000054
+  parsedNumber . . . . . . . . .	DWord	 bp - 00000058
+  parsedNumberFactor . . . . . .	DWord	 bp - 0000005C
+  currentChar  . . . . . . . . .	DWord	 bp - 00000060
+  _promptNumber  . . . . . . . .	L Near	 0000006C _TEXT	
+  _invalidPromptNumber . . . . .	L Near	 00000086 _TEXT	
+  _parseNumber . . . . . . . . .	L Near	 000000A8 _TEXT	
+  _begParseLoop  . . . . . . . .	L Near	 000000B6 _TEXT	
+  _endParseNumber  . . . . . . .	L Near	 000000E4 _TEXT	
 SetConsoleCursorInfo . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SetConsoleCursorPosition . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SetConsoleMode . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -255,8 +595,9 @@ WriteStackFrameName  . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+WriteVal . . . . . . . . . . . .	P Near	 000000F6 _TEXT	Length= 00000009 Public STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000007 Public STDCALL
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 0000003E Public STDCALL
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -348,6 +689,7 @@ KEY_EVENT  . . . . . . . . . . .	Number	 00000001h
 KEY_MASKS  . . . . . . . . . . .	Number	 0000001Fh   
 LEFT_ALT_PRESSED . . . . . . . .	Number	 00000002h   
 LEFT_CTRL_PRESSED  . . . . . . .	Number	 00000008h   
+MAX_NUMBERS  . . . . . . . . . .	Number	 0000000Ah   
 MB_ABORTRETRYIGNORE  . . . . . .	Number	 00000002h   
 MB_APPLMODAL . . . . . . . . . .	Number	 00000000h   
 MB_CANCELTRYCONTINUE . . . . . .	Number	 00000006h   
@@ -478,10 +820,14 @@ WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
+currentNumber  . . . . . . . . .	DWord	 000001CA _DATA	
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
+introMsg . . . . . . . . . . . .	Byte	 00000000 _DATA	
+invalidNumberMsg . . . . . . . .	Byte	 0000016E _DATA	
+invalidNumberPrompt  . . . . . .	Byte	 000001B7 _DATA	
 lightBlue  . . . . . . . . . . .	Number	 00000009h   
 lightCyan  . . . . . . . . . . .	Number	 0000000Bh   
 lightGray  . . . . . . . . . . .	Number	 00000007h   
@@ -489,6 +835,7 @@ lightGreen . . . . . . . . . . .	Number	 0000000Ah
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
+numberPrompt . . . . . . . . . .	Byte	 0000014C _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
