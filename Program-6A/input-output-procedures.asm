@@ -19,7 +19,11 @@ MAX_NUMBERS = 10
 
 ; Macro definitions
 
-; Displays the string at the buffer address to the user
+; Macro to display the string at the buffer address to the user
+; Recieves: address of buffer
+; Returns: none
+; Preconditions: buffer is null terminated
+; Registers changed: none
 mDisplayString MACRO bufferAddr
 	; Save edx register
 	push	edx
@@ -32,7 +36,11 @@ mDisplayString MACRO bufferAddr
 	pop		edx
 ENDM
 
-; Displays a prompt and gets a string input from the user and stores it in the buffer
+; Macro to display a prompt and gets a string input from the user and stores it in the buffer
+; Recieves: address of prompt buffer, address of buffer, size of buffer
+; Returns: prompt buffer will be displayed, buffer will contain null terminated user input
+; Preconditions: prompt buffer is null terminated
+; Registers changed: none
 mGetString MACRO promptAddr, bufferAddr, bufferSize
 	; Display prompt
 	mDisplayString promptAddr
@@ -83,6 +91,9 @@ main PROC
 	call	WriteDec
 	call	CrLf
 
+	push	currentNumber
+	call	WriteVal
+
 	exit	; exit to operating system
 main ENDP
 
@@ -124,7 +135,7 @@ ReadVal PROC
 	mov		tmpBuffer[79], 0
 	mov		parsedNumberFactor, 10
 
-	; Move address of tmp buffer to edi, address of number prompt to edx
+	; Move address of tmp buffer to edi
 	lea		edi, tmpBuffer
 
 	; Set direction flag to forward for when we're parsing the string
@@ -207,20 +218,90 @@ _endParseNumber:
 	ret		16
 ReadVal ENDP
 
-; Procedure write the number in the address given
-; Recieves: address of variable that contains the number to be displayed to the user
+; Procedure to write the number passed in to the user
+; Recieves: number value to be displayed to the user
 ; Returns: none
 ; Preconditions: variable contains a number
 ; Registers changed: none
 WriteVal PROC
-	; Setup stack and save all registers
-	push	ebp
-	mov		ebp, esp
+	; Setup local variables and save all registers
+	LOCAL	numStrSize:DWORD
+	LOCAL	numStr[40]:BYTE
+	LOCAL	numDivisor:DWORD
 	pushad
+
+	; Init numStrSize and numDivisor
+	mov		numStrSize, 40
+	mov		numDivisor, 10
+
+	; Move value of variable to eax
+	mov		eax, [ebp + 8]
+
+	; Move the address of the numStr to edi
+	lea		edi, numStr
+
+	; Set ecx to numStrSize - 1 for looping, numStrSize - 1 because the last element will
+	; be the null terminating character
+	mov		ecx, numStrSize
+	dec		ecx
+
+	; Repeatedly divide the number by 10 to get each digit in the number,
+	; convert that digit to ascii to get the text representation, and store 
+	; it in the numStr byte array
+_begAsciiConversion:
+	; Divide the number by 10, the remainder will be the right most digit
+	cdq
+	div		numDivisor
+
+	; Move remainder to ebx to convert to ascii by adding 48 (0) to it
+	mov		ebx, edx
+	add		ebx, 48
+
+	; Move the ascii number (ebx) to numStr and set edi to the next element
+	mov		[edi], ebx
+	inc		edi
+
+	; If the quotient is 0, that means we're done looping for digits
+	cmp		eax, 0
+	je		_endAsciiConversion
+
+	loop	_begAsciiConversion
+
+_endAsciiConversion:
+	; Set the last element to 0 for null character
+	mov		eax, 0
+	mov		[edi], eax
+
+	; Move the address of the first element to esi and decrement edi
+	; to get the last digit element
+	lea		esi, numStr
+	dec		edi
+
+	; The order of the digits in the numStr is reversed because of
+	; how we got the digits, so we need to reverse it normal
+_begSwapElements:
+	; Swap the beg and end elements and move inwards
+	mov		al, [esi]
+	mov		bl, [edi]
+	mov		[esi], bl
+	mov		[edi], al
+
+	; Increment esi and decrement edi
+	inc		esi
+	dec		edi
+
+	; If esi is greater than or equal to edi then we don't need swap anymore
+	cmp		esi, edi
+	jge		_endSwapElements
+	jmp		_begSwapElements
+
+_endSwapElements:
+	;; Display the number to the user
+	lea		esi, numStr
+	mDisplayString esi
 
 	; Cleanup stack and restore all registers
 	popad
-	pop		ebp
 	ret		4
 WriteVal ENDP
 
