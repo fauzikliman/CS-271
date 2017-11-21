@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/20/17 20:29:35
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/20/17 21:15:28
 0I/O Procedures     (input-output-procedures.asm	     Page 1 - 1
 
 
@@ -154,14 +154,19 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/20/17 20:29:35
 												"Each number needs to be small enough to fit inside a 32 bit register.", 10, 13,
 												"After you have finished inputting the raw numbers I will display a list", 10, 13,
 												"of the integers, their sum, and their average.", 10, 13, 10, 13, 0
- 0000014C 50 6C 65 61 73	numberPrompt			BYTE	"Please enter an unsigned number: ", 0
+ 0000014C 54 68 61 6E 6B	outroMsg				BYTE	"Thanks for playing!", 10, 13, 0
+	   73 20 66 6F 72
+	   20 70 6C 61 79
+	   69 6E 67 21 0A
+	   0D 00
+ 00000162 50 6C 65 61 73	numberPrompt			BYTE	"Please enter an unsigned number: ", 0
 	   65 20 65 6E 74
 	   65 72 20 61 6E
 	   20 75 6E 73 69
 	   67 6E 65 64 20
 	   6E 75 6D 62 65
 	   72 3A 20 00
- 0000016E 45 52 52 4F 52	invalidNumberMsg		BYTE	"ERROR: You did not enter an usigned number or your number was too big.", 10, 13, 0
+ 00000184 45 52 52 4F 52	invalidNumberMsg		BYTE	"ERROR: You did not enter an usigned number or your number was too big.", 10, 13, 0
 	   3A 20 59 6F 75
 	   20 64 69 64 20
 	   6E 6F 74 20 65
@@ -176,60 +181,134 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/20/17 20:29:35
 	   73 20 74 6F 6F
 	   20 62 69 67 2E
 	   0A 0D 00
- 000001B7 50 6C 65 61 73	invalidNumberPrompt		BYTE	"Please try again: ", 0
+ 000001CD 50 6C 65 61 73	invalidNumberPrompt		BYTE	"Please try again: ", 0
 	   65 20 74 72 79
 	   20 61 67 61 69
 	   6E 3A 20 00
- 000001CA 00000000		currentNumber			DWORD	0
+ 000001E0 59 6F 75 20 65	displayNumberMsg		BYTE	"You entered the following numbers:", 10, 13, 0
+	   6E 74 65 72 65
+	   64 20 74 68 65
+	   20 66 6F 6C 6C
+	   6F 77 69 6E 67
+	   20 6E 75 6D 62
+	   65 72 73 3A 0A
+	   0D 00
+ 00000205 54 68 65 20 73	numberSumMsg			BYTE	"The sum of these numbers is: ", 0
+	   75 6D 20 6F 66
+	   20 74 68 65 73
+	   65 20 6E 75 6D
+	   62 65 72 73 20
+	   69 73 3A 20 00
+ 00000223 54 68 65 20 61	numberAvgMsg			BYTE	"The average is: ", 0
+	   76 65 72 61 67
+	   65 20 69 73 3A
+	   20 00
+ 00000234 2C 20 00		commaSpaceMsg			BYTE	", ", 0
+ 00000237 00000000		currentNumber			DWORD	0
+ 0000023B 00000000		numberSum				DWORD	0
+ 0000023F			numbers					DWORD	MAX_NUMBERS DUP(0)
 
  00000000			.code
  00000000			main PROC
 					; Display intro message
- 00000000  68 00000000 R		push	OFFSET introMsg
- 00000005  E8 0000003F			call	DisplayIntro
+					mDisplayString OFFSET introMsg
+ 00000000  52		     1		push	edx
+ 00000001  BA 00000000 R     1		mov		edx, OFFSET introMsg
+ 00000006  E8 00000000 E     1		call	WriteString
+ 0000000B  5A		     1		pop		edx
 
-					; Get 10 numbers from the user
- 0000000A  B9 0000000A			mov		ecx, MAX_NUMBERS
+					; Move address of numbers array to edi and set ecx to MAX_NUMBERS
+ 0000000C  BF 0000023F R		mov		edi, OFFSET numbers
+ 00000011  B9 0000000A			mov		ecx, MAX_NUMBERS
 
- 0000000F  68 0000014C R		push	OFFSET numberPrompt
- 00000014  68 000001B7 R		push	OFFSET invalidNumberPrompt
- 00000019  68 0000016E R		push	OFFSET invalidNumberMsg
- 0000001E  68 000001CA R		push	OFFSET currentNumber
- 00000023  E8 00000032			call	ReadVal
+ 00000016			_begNumberPrompt:
+					; Get a valid number from the user
+ 00000016  68 00000162 R		push	OFFSET numberPrompt
+ 0000001B  68 000001CD R		push	OFFSET invalidNumberPrompt
+ 00000020  68 00000184 R		push	OFFSET invalidNumberMsg
+ 00000025  68 00000237 R		push	OFFSET currentNumber
+ 0000002A  E8 000000AC			call	ReadVal
 
- 00000028  A1 000001CA R		mov		eax, currentNumber
- 0000002D  E8 00000000 E		call	WriteDec
- 00000032  E8 00000000 E		call	CrLf
+					; Add the number to the sum
+ 0000002F  A1 00000237 R		mov		eax, currentNumber
+ 00000034  01 05 0000023B R		add		numberSum, eax
 
- 00000037  FF 35 000001CA R		push	currentNumber
- 0000003D  E8 000000BF			call	WriteVal
+					; Put the number in the numbers array and move to the next element
+ 0000003A  A1 00000237 R		mov		eax, currentNumber
+ 0000003F  89 07			mov		[edi], eax
+ 00000041  83 C7 04			add		edi, 4
+
+ 00000044  E2 D0			loop	_begNumberPrompt
+ 00000046  E8 00000000 E		call	CrLf
+
+					; Move address of numbers array to esi set ecx to MAX_NUMBERS
+ 0000004B  BE 0000023F R		mov		esi, OFFSET numbers
+ 00000050  B9 0000000A			mov		ecx, MAX_NUMBERS
+
+					; Display message about the numbers entered
+					mDisplayString OFFSET displayNumberMsg
+ 00000055  52		     1		push	edx
+ 00000056  BA 000001E0 R     1		mov		edx, OFFSET displayNumberMsg
+ 0000005B  E8 00000000 E     1		call	WriteString
+ 00000060  5A		     1		pop		edx
+
+ 00000061			_begDisplayNumbers:
+					; Display the number and move to next element
+ 00000061  FF 36			push	[esi]
+ 00000063  E8 0000011A			call	WriteVal
+ 00000068  83 C6 04			add		esi, 4
+
+					; Display the comma and a space if its not the last number
+ 0000006B  83 F9 01			cmp		ecx, 1
+ 0000006E  7E 0C			jle		_endDisplayCommaSpace
+					mDisplayString OFFSET commaSpaceMsg
+ 00000070  52		     1		push	edx
+ 00000071  BA 00000234 R     1		mov		edx, OFFSET commaSpaceMsg
+ 00000076  E8 00000000 E     1		call	WriteString
+ 0000007B  5A		     1		pop		edx
+
+ 0000007C			_endDisplayCommaSpace:
+ 0000007C  E2 E3			loop	_begDisplayNumbers
+ 0000007E  E8 00000000 E		call	CrLf
+
+					; Display the sum
+					mDisplayString OFFSET numberSumMsg
+ 00000083  52		     1		push	edx
+ 00000084  BA 00000205 R     1		mov		edx, OFFSET numberSumMsg
+ 00000089  E8 00000000 E     1		call	WriteString
+ 0000008E  5A		     1		pop		edx
+ 0000008F  FF 35 0000023B R		push	numberSum
+ 00000095  E8 000000E8			call	WriteVal
+ 0000009A  E8 00000000 E		call	CrLf
+
+					; Calculate the average
+ 0000009F  A1 0000023B R		mov		eax, numberSum
+ 000000A4  BB 0000000A			mov		ebx, MAX_NUMBERS
+ 000000A9  99				cdq
+ 000000AA  F7 F3			div		ebx
+
+					; Display avg
+					mDisplayString OFFSET numberAvgMsg
+ 000000AC  52		     1		push	edx
+ 000000AD  BA 00000223 R     1		mov		edx, OFFSET numberAvgMsg
+ 000000B2  E8 00000000 E     1		call	WriteString
+ 000000B7  5A		     1		pop		edx
+ 000000B8  50				push	eax
+ 000000B9  E8 000000C4			call	WriteVal
+ 000000BE  E8 00000000 E		call	CrLf
+ 000000C3  E8 00000000 E		call	CrLf
+
+					; Display outro
+					mDisplayString OFFSET outroMsg
+ 000000C8  52		     1		push	edx
+ 000000C9  BA 0000014C R     1		mov		edx, OFFSET outroMsg
+ 000000CE  E8 00000000 E     1		call	WriteString
+ 000000D3  5A		     1		pop		edx
 
 					exit	; exit to operating system
- 00000042  6A 00	   *	    push   +000000000h
- 00000044  E8 00000000 E   *	    call   ExitProcess
- 00000049			main ENDP
-
-				; Procedure to introduce the program and programmer, and how to use the program
-				; Recieves: address of intro message
-				; Returns: none
-				; Preconditions: none
-				; Registers changed: none
- 00000049			DisplayIntro PROC
-					; Setup stack
- 00000049  55				push	ebp
- 0000004A  8B EC			mov		ebp, esp
-
-					; Display the intro message
-					mDisplayString [ebp + 8]
- 0000004C  52		     1		push	edx
- 0000004D  8B 55 08	     1		mov		edx, [ebp + 8]
- 00000050  E8 00000000 E     1		call	WriteString
- 00000055  5A		     1		pop		edx
-
-					; Cleanup stack
- 00000056  5D				pop		ebp
- 00000057  C2 0004			ret		4
- 0000005A			DisplayIntro ENDP
+ 000000D4  6A 00	   *	    push   +000000000h
+ 000000D6  E8 00000000 E   *	    call   ExitProcess
+ 000000DB			main ENDP
 
 				; Procedure to display a prompt for user input and gets a number from the user
 				; Recieves: address of number prompt, address of invalid number prompt, address of invalid number message,
@@ -237,236 +316,235 @@ Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/20/17 20:29:35
 				; Returns: variable passed in contains a valid number from the user
 				; Preconditions: none
 				; Registers changed: none
- 0000005A			ReadVal PROC
+ 000000DB			ReadVal PROC
 					; Setup local variables and save all registers
 					LOCAL	tmpBufferSize:DWORD
 					LOCAL	tmpBuffer[80]:BYTE
 					LOCAL	parsedNumber:DWORD
 					LOCAL	parsedNumberFactor:DWORD
 					LOCAL	currentChar:DWORD
- 0000005A  55		   *	    push   ebp
- 0000005B  8B EC	   *	    mov    ebp, esp
- 0000005D  83 C4 A0	   *	    add    esp, 0FFFFFFA0h
- 00000060  60				pushad
+ 000000DB  55		   *	    push   ebp
+ 000000DC  8B EC	   *	    mov    ebp, esp
+ 000000DE  83 C4 A0	   *	    add    esp, 0FFFFFFA0h
+ 000000E1  60				pushad
 
 					; Init local variables
- 00000061  C7 45 FC			mov		tmpBufferSize, 80
+ 000000E2  C7 45 FC			mov		tmpBufferSize, 80
 	   00000050
- 00000068  C6 45 FB 00			mov		tmpBuffer[79], 0
- 0000006C  C7 45 A4			mov		parsedNumberFactor, 10
+ 000000E9  C6 45 FB 00			mov		tmpBuffer[79], 0
+ 000000ED  C7 45 A4			mov		parsedNumberFactor, 10
 	   0000000A
 
 					; Move address of tmp buffer to edi
- 00000073  8D 7D AC			lea		edi, tmpBuffer
+ 000000F4  8D 7D AC			lea		edi, tmpBuffer
 
 					; Set direction flag to forward for when we're parsing the string
- 00000076  FC				cld
+ 000000F7  FC				cld
 
- 00000077			_promptNumber:
+ 000000F8			_promptNumber:
 					; Get user input, pass in number prompt, address of tmp buffer, size of tmp buffer
 					mGetString [ebp + 20], edi, tmpBufferSize
- 00000077  52		     2		push	edx
- 00000078  8B 55 14	     2		mov		edx, [ebp + 20]
- 0000007B  E8 00000000 E     2		call	WriteString
- 00000080  5A		     2		pop		edx
- 00000081  51		     1		push	ecx
- 00000082  52		     1		push	edx
- 00000083  8B D7	     1		mov		edx, edi
- 00000085  8B 4D FC	     1		mov		ecx, tmpBufferSize
- 00000088  E8 00000000 E     1		call	ReadString
- 0000008D  5A		     1		pop		edx
- 0000008E  59		     1		pop		ecx
- 0000008F  EB 22			jmp		_parseNumber
+ 000000F8  52		     2		push	edx
+ 000000F9  8B 55 14	     2		mov		edx, [ebp + 20]
+ 000000FC  E8 00000000 E     2		call	WriteString
+ 00000101  5A		     2		pop		edx
+ 00000102  51		     1		push	ecx
+ 00000103  52		     1		push	edx
+ 00000104  8B D7	     1		mov		edx, edi
+ 00000106  8B 4D FC	     1		mov		ecx, tmpBufferSize
+ 00000109  E8 00000000 E     1		call	ReadString
+ 0000010E  5A		     1		pop		edx
+ 0000010F  59		     1		pop		ecx
+ 00000110  EB 22			jmp		_parseNumber
 
- 00000091			_invalidPromptNumber:
+ 00000112			_invalidPromptNumber:
 					; Display invalid number error, pass in invalid number message
 					mDisplayString [ebp + 12]
- 00000091  52		     1		push	edx
- 00000092  8B 55 0C	     1		mov		edx, [ebp + 12]
- 00000095  E8 00000000 E     1		call	WriteString
- 0000009A  5A		     1		pop		edx
+ 00000112  52		     1		push	edx
+ 00000113  8B 55 0C	     1		mov		edx, [ebp + 12]
+ 00000116  E8 00000000 E     1		call	WriteString
+ 0000011B  5A		     1		pop		edx
 
 					; Get user input, pass in invalid number prompt, address of tmp buffer, size of tmp buffer
 					mGetString [ebp + 16], edi, tmpBufferSize
- 0000009B  52		     2		push	edx
- 0000009C  8B 55 10	     2		mov		edx, [ebp + 16]
- 0000009F  E8 00000000 E     2		call	WriteString
- 000000A4  5A		     2		pop		edx
+ 0000011C  52		     2		push	edx
+ 0000011D  8B 55 10	     2		mov		edx, [ebp + 16]
+ 00000120  E8 00000000 E     2		call	WriteString
+ 00000125  5A		     2		pop		edx
+ 00000126  51		     1		push	ecx
+ 00000127  52		     1		push	edx
+ 00000128  8B D7	     1		mov		edx, edi
+ 0000012A  8B 4D FC	     1		mov		ecx, tmpBufferSize
+ 0000012D  E8 00000000 E     1		call	ReadString
+ 00000132  5A		     1		pop		edx
+ 00000133  59		     1		pop		ecx
 
- 000000A5  51		     1		push	ecx
- 000000A6  52		     1		push	edx
- 000000A7  8B D7	     1		mov		edx, edi
- 000000A9  8B 4D FC	     1		mov		ecx, tmpBufferSize
- 000000AC  E8 00000000 E     1		call	ReadString
- 000000B1  5A		     1		pop		edx
- 000000B2  59		     1		pop		ecx
-
- 000000B3			_parseNumber:
+ 00000134			_parseNumber:
 					; Init parsed number to 0
- 000000B3  C7 45 A8			mov		parsedNumber, 0
+ 00000134  C7 45 A8			mov		parsedNumber, 0
 	   00000000
 
 					; Init number of digits processed to 0
- 000000BA  B9 00000000			mov		ecx, 0
+ 0000013B  B9 00000000			mov		ecx, 0
 
 					; Move address of tmp buffer to esi
- 000000BF  8B F7			mov		esi, edi
+ 00000140  8B F7			mov		esi, edi
 
- 000000C1			_begParseLoop:
+ 00000142			_begParseLoop:
 					; Get current character byte in tmp buffer to al and move it currentChar
- 000000C1  AC				lodsb
- 000000C2  88 45 A0			mov		BYTE PTR currentChar, al
+ 00000142  AC				lodsb
+ 00000143  88 45 A0			mov		BYTE PTR currentChar, al
 
 					; Check if current character is 0, if so it means we're done
- 000000C5  83 7D A0 00			cmp		currentChar, 0
- 000000C9  74 24			je		_endParseNumber
+ 00000146  83 7D A0 00			cmp		currentChar, 0
+ 0000014A  74 24			je		_endParseNumber
 
 					; Check if current character is a valid digit, 48 = 0, 57 = 9, if not its invalid then
- 000000CB  83 7D A0 30			cmp		currentChar, 48
- 000000CF  7C C0			jl		_invalidPromptNumber
- 000000D1  83 7D A0 39			cmp		currentChar, 57
- 000000D5  7F BA			jg		_invalidPromptNUmber
+ 0000014C  83 7D A0 30			cmp		currentChar, 48
+ 00000150  7C C0			jl		_invalidPromptNumber
+ 00000152  83 7D A0 39			cmp		currentChar, 57
+ 00000156  7F BA			jg		_invalidPromptNUmber
 
 					; Else its a valid digit, multiply the current parsed number by 10 and add the current character
 					; as a digit by subtractin 48 (0) from it
- 000000D7  8B 45 A8			mov		eax, parsedNumber
- 000000DA  F7 65 A4			mul		parsedNumberFactor
+ 00000158  8B 45 A8			mov		eax, parsedNumber
+ 0000015B  F7 65 A4			mul		parsedNumberFactor
 
 					; If the parsed number is too big, its invalid
- 000000DD  72 B2			jc		_invalidPromptNumber
+ 0000015E  72 B2			jc		_invalidPromptNumber
 
 					; Convert current character to digit by subtracting 48 (0) from it
- 000000DF  8B 5D A0			mov		ebx, currentChar
- 000000E2  83 EB 30			sub		ebx, 48
+ 00000160  8B 5D A0			mov		ebx, currentChar
+ 00000163  83 EB 30			sub		ebx, 48
 
 					; Add the current digit to the parsed number
- 000000E5  03 C3			add		eax, ebx
+ 00000166  03 C3			add		eax, ebx
 
 					; If the parsed number is too big, its invalid
- 000000E7  72 A8			jc		_invalidPromptNumber
+ 00000168  72 A8			jc		_invalidPromptNumber
 
 					; Update the parsed number variable and the amount of digits we've processed
- 000000E9  89 45 A8			mov		parsedNumber, eax
- 000000EC  41				inc		ecx
+ 0000016A  89 45 A8			mov		parsedNumber, eax
+ 0000016D  41				inc		ecx
 
 					; Loop again to the next character
- 000000ED  EB D2			jmp		_begParseLoop
+ 0000016E  EB D2			jmp		_begParseLoop
 
- 000000EF			_endParseNumber:
+ 00000170			_endParseNumber:
 					; If we didn't parse any digits, that means the user just pressed enter
- 000000EF  83 F9 00			cmp		ecx, 0
- 000000F2  74 9D			je		_invalidPromptNumber
+ 00000170  83 F9 00			cmp		ecx, 0
+ 00000173  74 9D			je		_invalidPromptNumber
 
 					; Move the parsed number into the address of the passed in variable to contain it
- 000000F4  8B 45 A8			mov		eax, parsedNumber
- 000000F7  8B 7D 08			mov		edi, [ebp + 8]
- 000000FA  89 07			mov		[edi], eax
+ 00000175  8B 45 A8			mov		eax, parsedNumber
+ 00000178  8B 7D 08			mov		edi, [ebp + 8]
+ 0000017B  89 07			mov		[edi], eax
 
 					; Cleanup stack and restore all registers
- 000000FC  61				popad
- 000000FD  C9		   *	    leave  
- 000000FE  C2 0010			ret		16
- 00000101			ReadVal ENDP
+ 0000017D  61				popad
+ 0000017E  C9		   *	    leave  
+ 0000017F  C2 0010			ret		16
+ 00000182			ReadVal ENDP
 
 				; Procedure to write the number passed in to the user
 				; Recieves: number value to be displayed to the user
 				; Returns: none
 				; Preconditions: variable contains a number
 				; Registers changed: none
- 00000101			WriteVal PROC
+ 00000182			WriteVal PROC
 					; Setup local variables and save all registers
 					LOCAL	numStrSize:DWORD
 					LOCAL	numStr[40]:BYTE
 					LOCAL	numDivisor:DWORD
- 00000101  55		   *	    push   ebp
- 00000102  8B EC	   *	    mov    ebp, esp
- 00000104  83 C4 D0	   *	    add    esp, 0FFFFFFD0h
- 00000107  60				pushad
+ 00000182  55		   *	    push   ebp
+ 00000183  8B EC	   *	    mov    ebp, esp
+ 00000185  83 C4 D0	   *	    add    esp, 0FFFFFFD0h
+ 00000188  60				pushad
 
 					; Init numStrSize and numDivisor
- 00000108  C7 45 FC			mov		numStrSize, 40
+ 00000189  C7 45 FC			mov		numStrSize, 40
 	   00000028
- 0000010F  C7 45 D0			mov		numDivisor, 10
+ 00000190  C7 45 D0			mov		numDivisor, 10
 	   0000000A
 
 					; Move value of variable to eax
- 00000116  8B 45 08			mov		eax, [ebp + 8]
+ 00000197  8B 45 08			mov		eax, [ebp + 8]
 
 					; Move the address of the numStr to edi
- 00000119  8D 7D D4			lea		edi, numStr
+ 0000019A  8D 7D D4			lea		edi, numStr
 
 					; Set ecx to numStrSize - 1 for looping, numStrSize - 1 because the last element will
 					; be the null terminating character
- 0000011C  8B 4D FC			mov		ecx, numStrSize
- 0000011F  49				dec		ecx
+ 0000019D  8B 4D FC			mov		ecx, numStrSize
+ 000001A0  49				dec		ecx
 
 					; Repeatedly divide the number by 10 to get each digit in the number,
 					; convert that digit to ascii to get the text representation, and store 
 					; it in the numStr byte array
- 00000120			_begAsciiConversion:
+ 000001A1			_begAsciiConversion:
 					; Divide the number by 10, the remainder will be the right most digit
- 00000120  99				cdq
- 00000121  F7 75 D0			div		numDivisor
+ 000001A1  99				cdq
+ 000001A2  F7 75 D0			div		numDivisor
 
 					; Move remainder to ebx to convert to ascii by adding 48 (0) to it
- 00000124  8B DA			mov		ebx, edx
- 00000126  83 C3 30			add		ebx, 48
+ 000001A5  8B DA			mov		ebx, edx
+ 000001A7  83 C3 30			add		ebx, 48
 
 					; Move the ascii number (ebx) to numStr and set edi to the next element
- 00000129  89 1F			mov		[edi], ebx
- 0000012B  47				inc		edi
+ 000001AA  89 1F			mov		[edi], ebx
+ 000001AC  47				inc		edi
 
 					; If the quotient is 0, that means we're done looping for digits
- 0000012C  83 F8 00			cmp		eax, 0
- 0000012F  74 02			je		_endAsciiConversion
+ 000001AD  83 F8 00			cmp		eax, 0
+ 000001B0  74 02			je		_endAsciiConversion
 
- 00000131  E2 ED			loop	_begAsciiConversion
+ 000001B2  E2 ED			loop	_begAsciiConversion
 
- 00000133			_endAsciiConversion:
+ 000001B4			_endAsciiConversion:
 					; Set the last element to 0 for null character
- 00000133  B8 00000000			mov		eax, 0
- 00000138  89 07			mov		[edi], eax
+ 000001B4  B8 00000000			mov		eax, 0
+ 000001B9  89 07			mov		[edi], eax
 
 					; Move the address of the first element to esi and decrement edi
 					; to get the last digit element
- 0000013A  8D 75 D4			lea		esi, numStr
- 0000013D  4F				dec		edi
+ 000001BB  8D 75 D4			lea		esi, numStr
+ 000001BE  4F				dec		edi
 
 					; The order of the digits in the numStr is reversed because of
 					; how we got the digits, so we need to reverse it normal
- 0000013E			_begSwapElements:
+ 000001BF			_begSwapElements:
 					; Swap the beg and end elements and move inwards
- 0000013E  8A 06			mov		al, [esi]
- 00000140  8A 1F			mov		bl, [edi]
- 00000142  88 1E			mov		[esi], bl
- 00000144  88 07			mov		[edi], al
+ 000001BF  8A 06			mov		al, [esi]
+ 000001C1  8A 1F			mov		bl, [edi]
+ 000001C3  88 1E			mov		[esi], bl
+ 000001C5  88 07			mov		[edi], al
 
 					; Increment esi and decrement edi
- 00000146  46				inc		esi
- 00000147  4F				dec		edi
+ 000001C7  46				inc		esi
+ 000001C8  4F				dec		edi
 
 					; If esi is greater than or equal to edi then we don't need swap anymore
- 00000148  3B F7			cmp		esi, edi
- 0000014A  7D 02			jge		_endSwapElements
- 0000014C  EB F0	jmp		_begSwapElements
+ 000001C9  3B F7			cmp		esi, edi
+ 000001CB  7D 02			jge		_endSwapElements
+ 000001CD  EB F0			jmp		_begSwapElements
 
- 0000014E			_endSwapElements:
-					;; Display the number to the user
- 0000014E  8D 75 D4			lea		esi, numStr
+ 000001CF			_endSwapElements:
+					; Display the number to the user
+ 000001CF  8D 75 D4			lea		esi, numStr
 					mDisplayString esi
- 00000151  52		     1		push	edx
- 00000152  8B D6	     1		mov		edx, esi
- 00000154  E8 00000000 E     1		call	WriteString
- 00000159  5A		     1		pop		edx
+ 000001D2  52		     1		push	edx
+ 000001D3  8B D6	     1		mov		edx, esi
+ 000001D5  E8 00000000 E     1		call	WriteString
+ 000001DA  5A		     1		pop		edx
 
 					; Cleanup stack and restore all registers
- 0000015A  61				popad
- 0000015B  C9		   *	    leave  
- 0000015C  C2 0004			ret		4
- 0000015F			WriteVal ENDP
+ 000001DB  61				popad
+ 000001DC  C9		   *	    leave  
+ 000001DD  C2 0004			ret		4
+ 000001E0			WriteVal ENDP
 
 				END main
-Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/20/17 20:29:35
+Microsoft (R) Macro Assembler Version 14.11.25508.2	    11/20/17 21:15:28
 0I/O Procedures     (input-output-procedures.asm	     Symbols 2 - 1
 
 
@@ -568,8 +646,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 000001CE Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 0000015F Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000267 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 000001E0 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -583,7 +661,6 @@ CreateFileA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-DisplayIntro . . . . . . . . . .	P Near	 00000049 _TEXT	Length= 00000011 Public STDCALL
 DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ExitProcess  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -640,17 +717,17 @@ ReadInt  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 ReadKeyFlush . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadKey  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ReadString . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-ReadVal  . . . . . . . . . . . .	P Near	 0000005A _TEXT	Length= 000000A7 Public STDCALL
+ReadVal  . . . . . . . . . . . .	P Near	 000000DB _TEXT	Length= 000000A7 Public STDCALL
   tmpBufferSize  . . . . . . . .	DWord	 bp - 00000004
   tmpBuffer  . . . . . . . . . .	Byte	 bp - 00000054
   parsedNumber . . . . . . . . .	DWord	 bp - 00000058
   parsedNumberFactor . . . . . .	DWord	 bp - 0000005C
   currentChar  . . . . . . . . .	DWord	 bp - 00000060
-  _promptNumber  . . . . . . . .	L Near	 00000077 _TEXT	
-  _invalidPromptNumber . . . . .	L Near	 00000091 _TEXT	
-  _parseNumber . . . . . . . . .	L Near	 000000B3 _TEXT	
-  _begParseLoop  . . . . . . . .	L Near	 000000C1 _TEXT	
-  _endParseNumber  . . . . . . .	L Near	 000000EF _TEXT	
+  _promptNumber  . . . . . . . .	L Near	 000000F8 _TEXT	
+  _invalidPromptNumber . . . . .	L Near	 00000112 _TEXT	
+  _parseNumber . . . . . . . . .	L Near	 00000134 _TEXT	
+  _begParseLoop  . . . . . . . .	L Near	 00000142 _TEXT	
+  _endParseNumber  . . . . . . .	L Near	 00000170 _TEXT	
 SetConsoleCursorInfo . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SetConsoleCursorPosition . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SetConsoleMode . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -687,16 +764,19 @@ WriteStackFrameName  . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-WriteVal . . . . . . . . . . . .	P Near	 00000101 _TEXT	Length= 0000005E Public STDCALL
+WriteVal . . . . . . . . . . . .	P Near	 00000182 _TEXT	Length= 0000005E Public STDCALL
   numStrSize . . . . . . . . . .	DWord	 bp - 00000004
   numStr . . . . . . . . . . . .	Byte	 bp - 0000002C
   numDivisor . . . . . . . . . .	DWord	 bp - 00000030
-  _begAsciiConversion  . . . . .	L Near	 00000120 _TEXT	
-  _endAsciiConversion  . . . . .	L Near	 00000133 _TEXT	
-  _begSwapElements . . . . . . .	L Near	 0000013E _TEXT	
-  _endSwapElements . . . . . . .	L Near	 0000014E _TEXT	
+  _begAsciiConversion  . . . . .	L Near	 000001A1 _TEXT	
+  _endAsciiConversion  . . . . .	L Near	 000001B4 _TEXT	
+  _begSwapElements . . . . . . .	L Near	 000001BF _TEXT	
+  _endSwapElements . . . . . . .	L Near	 000001CF _TEXT	
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000049 Public STDCALL
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000000DB Public STDCALL
+  _begNumberPrompt . . . . . . .	L Near	 00000016 _TEXT	
+  _begDisplayNumbers . . . . . .	L Near	 00000061 _TEXT	
+  _endDisplayCommaSpace  . . . .	L Near	 0000007C _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -919,14 +999,16 @@ WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
-currentNumber  . . . . . . . . .	DWord	 000001CA _DATA	
+commaSpaceMsg  . . . . . . . . .	Byte	 00000234 _DATA	
+currentNumber  . . . . . . . . .	DWord	 00000237 _DATA	
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
+displayNumberMsg . . . . . . . .	Byte	 000001E0 _DATA	
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
 introMsg . . . . . . . . . . . .	Byte	 00000000 _DATA	
-invalidNumberMsg . . . . . . . .	Byte	 0000016E _DATA	
-invalidNumberPrompt  . . . . . .	Byte	 000001B7 _DATA	
+invalidNumberMsg . . . . . . . .	Byte	 00000184 _DATA	
+invalidNumberPrompt  . . . . . .	Byte	 000001CD _DATA	
 lightBlue  . . . . . . . . . . .	Number	 00000009h   
 lightCyan  . . . . . . . . . . .	Number	 0000000Bh   
 lightGray  . . . . . . . . . . .	Number	 00000007h   
@@ -934,7 +1016,12 @@ lightGreen . . . . . . . . . . .	Number	 0000000Ah
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
-numberPrompt . . . . . . . . . .	Byte	 0000014C _DATA	
+numberAvgMsg . . . . . . . . . .	Byte	 00000223 _DATA	
+numberPrompt . . . . . . . . . .	Byte	 00000162 _DATA	
+numberSumMsg . . . . . . . . . .	Byte	 00000205 _DATA	
+numberSum  . . . . . . . . . . .	DWord	 0000023B _DATA	
+numbers  . . . . . . . . . . . .	DWord	 0000023F _DATA	
+outroMsg . . . . . . . . . . . .	Byte	 0000014C _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA

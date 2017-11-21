@@ -67,53 +67,93 @@ introMsg				BYTE	"PROGRAMMING ASSIGNMENT 6A: Designing low-level I/O procedures"
 								"Each number needs to be small enough to fit inside a 32 bit register.", 10, 13,
 								"After you have finished inputting the raw numbers I will display a list", 10, 13,
 								"of the integers, their sum, and their average.", 10, 13, 10, 13, 0
+outroMsg				BYTE	"Thanks for playing!", 10, 13, 0
 numberPrompt			BYTE	"Please enter an unsigned number: ", 0
 invalidNumberMsg		BYTE	"ERROR: You did not enter an usigned number or your number was too big.", 10, 13, 0
 invalidNumberPrompt		BYTE	"Please try again: ", 0
+displayNumberMsg		BYTE	"You entered the following numbers:", 10, 13, 0
+numberSumMsg			BYTE	"The sum of these numbers is: ", 0
+numberAvgMsg			BYTE	"The average is: ", 0
+commaSpaceMsg			BYTE	", ", 0
 currentNumber			DWORD	0
+numberSum				DWORD	0
+numbers					DWORD	MAX_NUMBERS DUP(0)
 
 .code
 main PROC
 	; Display intro message
-	push	OFFSET introMsg
-	call	DisplayIntro
+	mDisplayString OFFSET introMsg
 
-	; Get 10 numbers from the user
+	; Move address of numbers array to edi and set ecx to MAX_NUMBERS
+	mov		edi, OFFSET numbers
 	mov		ecx, MAX_NUMBERS
 
+_begNumberPrompt:
+	; Get a valid number from the user
 	push	OFFSET numberPrompt
 	push	OFFSET invalidNumberPrompt
 	push	OFFSET invalidNumberMsg
 	push	OFFSET currentNumber
 	call	ReadVal
 
+	; Add the number to the sum
 	mov		eax, currentNumber
-	call	WriteDec
+	add		numberSum, eax
+
+	; Put the number in the numbers array and move to the next element
+	mov		eax, currentNumber
+	mov		[edi], eax
+	add		edi, 4
+
+	loop	_begNumberPrompt
 	call	CrLf
 
-	push	currentNumber
+	; Move address of numbers array to esi set ecx to MAX_NUMBERS
+	mov		esi, OFFSET numbers
+	mov		ecx, MAX_NUMBERS
+
+	; Display message about the numbers entered
+	mDisplayString OFFSET displayNumberMsg
+
+_begDisplayNumbers:
+	; Display the number and move to next element
+	push	[esi]
 	call	WriteVal
+	add		esi, 4
+
+	; Display the comma and a space if its not the last number
+	cmp		ecx, 1
+	jle		_endDisplayCommaSpace
+	mDisplayString OFFSET commaSpaceMsg
+
+_endDisplayCommaSpace:
+	loop	_begDisplayNumbers
+	call	CrLf
+
+	; Display the sum
+	mDisplayString OFFSET numberSumMsg
+	push	numberSum
+	call	WriteVal
+	call	CrLf
+
+	; Calculate the average
+	mov		eax, numberSum
+	mov		ebx, MAX_NUMBERS
+	cdq
+	div		ebx
+
+	; Display avg
+	mDisplayString OFFSET numberAvgMsg
+	push	eax
+	call	WriteVal
+	call	CrLf
+	call	CrLf
+
+	; Display outro
+	mDisplayString OFFSET outroMsg
 
 	exit	; exit to operating system
 main ENDP
-
-; Procedure to introduce the program and programmer, and how to use the program
-; Recieves: address of intro message
-; Returns: none
-; Preconditions: none
-; Registers changed: none
-DisplayIntro PROC
-	; Setup stack
-	push	ebp
-	mov		ebp, esp
-
-	; Display the intro message
-	mDisplayString [ebp + 8]
-
-	; Cleanup stack
-	pop		ebp
-	ret		4
-DisplayIntro ENDP
 
 ; Procedure to display a prompt for user input and gets a number from the user
 ; Recieves: address of number prompt, address of invalid number prompt, address of invalid number message,
@@ -296,7 +336,7 @@ _begSwapElements:
 	jmp		_begSwapElements
 
 _endSwapElements:
-	;; Display the number to the user
+	; Display the number to the user
 	lea		esi, numStr
 	mDisplayString esi
 
