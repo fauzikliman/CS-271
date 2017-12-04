@@ -45,7 +45,8 @@ mGetString MACRO promptAddr, bufferAddr, bufferSize
 	; Display prompt
 	mDisplayString promptAddr
 
-	; Save ecx and edx register
+	; Save eax, ecx, and edx registers
+	push	eax
 	push	ecx
 	push	edx
 
@@ -54,9 +55,10 @@ mGetString MACRO promptAddr, bufferAddr, bufferSize
 	mov		ecx, bufferSize
 	call	ReadString
 
-	; Restore ecx and edx register
+	; Restore eax, ecx, and edx registers
 	pop		edx
 	pop		ecx
+	pop		eax
 ENDM
 
 .data
